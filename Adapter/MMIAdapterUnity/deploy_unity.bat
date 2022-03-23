@@ -10,15 +10,15 @@ ECHO [33mdeploy_unity.bat[0m at %cd%\deploy_unity.bat Deploying the Unity adap
 ECHO _______________________________________________________
 ECHO.
 
-if not defined UNITY2019_18_1 (
-  ECHO [31mUNITY2019_18_1 Environment variable pointing to the Unity.exe for Unity version 2019.18.1f1 is missing.[0m
-  ECHO    e.g. SET "UNITY2019_18_1=C:\Program Files\Unity Environments\2018.4.1f1\Editor\Unity.exe\"
-  ECHO UNITY2019_18_1 defined as: "%UNITY2019_18_1%"
+if not defined MOSIM_UNITY (
+  ECHO [31mMOSIM_UNITY Environment variable pointing to the Unity.exe for Unity version 2019.18.1f1 is missing.[0m
+  ECHO    e.g. SETX MOSIM_UNITY "C:\Program Files\Unity Environments\2018.4.1f1\Editor\Unity.exe\"
+  ECHO MOSIM_UNITY defined as: "%MOSIM_UNITY%"
   pause
   exit /b 1
 ) else (
-  if not exist "%UNITY2019_18_1%" (
-    ECHO Unity does not seem to be installed at "%UNITY2019_18_1%" or path name in deploy_variables.bat is wrong.
+  if not exist "%MOSIM_UNITY%" (
+    ECHO Unity does not seem to be installed at "%MOSIM_UNITY%" or path name in deploy_variables.bat is wrong.
     exit /b 2
   )
 
@@ -32,7 +32,7 @@ REM Build Unity Project:
 
 ECHO Building the Unity Adapter project. This step may take some while, so please wait...
 @REM call "%UNITY2018_4_1%" -batchmode -quit -logFile build.log -projectPath . -buildWindowsPlayer "build/UnityAdapter.exe"
-call "%UNITY2019_18_1%" -quit -batchmode -logFile build.log -projectPath "." -executeMethod BuildUnityAdapter.CreateServerBuild 
+call "%MOSIM_UNITY%" -quit -batchmode -logFile build.log -projectPath "." -executeMethod BuildUnityAdapter.CreateServerBuild 
 
 if %ERRORLEVEL% EQU 0 (
   COPY .\configurations\avatar.mos build\
