@@ -1,0 +1,3 @@
+[submodule "MMUs/dfki.mmiunity-core/MMIUnity-Core"]
+	path = MMUs/dfki.mmiunity-core/MMIUnity-Core
+	url = ../MMIUnity-Core.git

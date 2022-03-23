@@ -1,0 +1,27 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <TargetFramework>netstandard2.0</TargetFramework>
+    <RootNamespace>dfki.mmiunity_core</RootNamespace>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <Reference Include="System.Threading.Tasks.Extensions">
+      <HintPath>MMIUnity-Core\Runtime\plugins\System.Threading.Tasks.Extensions.dll</HintPath>
+    </Reference>
+    <Reference Include="Thrift">
+      <HintPath>MMIUnity-Core\Runtime\plugins\Thrift.dll</HintPath>
+    </Reference>
+    <Reference Include="UnityEngine">
+      <HintPath>..\UnityEngine.dll</HintPath>
+    </Reference>
+    <Reference Include="Utf8Json">
+      <HintPath>MMIUnity-Core\Runtime\plugins\Utf8Json.dll</HintPath>
+    </Reference>
+  </ItemGroup>
+
+  <Target Name="PreBuild" BeforeTargets="PreBuildEvent">
+    <Exec Command="SET &quot;UNITY2019=C:\Program Files\Unity\Hub\Editor\2019.4.25f1\Editor\Unity.exe&quot;&#xD;&#xA;SET UNITY_DLL=%25UNITY2019:Unity.exe=Data\Managed\UnityEngine.dll%25&#xD;&#xA;SET &quot;MYDLL=..\UnityEngine.dll&quot;&#xD;&#xA;&#xD;&#xA;IF EXIST %25MYDLL%25 (&#xD;&#xA;   ECHO Found UnityEngine.dll&#xD;&#xA;) ELSE (&#xD;&#xA;   ECHO Missing UnityEngine.dll&#xD;&#xA;   IF NOT DEFINED UNITY2019 ( &#xD;&#xA;       ECHO Environment Variable UNITY2019 not set. Please set this environment Variable to your Unity.exe for Unity 2019.4&#xD;&#xA;       exit /b 1&#xD;&#xA;  )&#xD;&#xA;  IF NOT EXIST &quot;%25UNITY_DLL%25&quot; (&#xD;&#xA;       ECHO Environment Variable UNITY2019 is pointing to non existing path &quot;%25UNITY2019%25&quot;&#xD;&#xA;       exit /b 1&#xD;&#xA;  )&#xD;&#xA;  ECHO Copy Unity DLL from &quot;%25UNITY_DLL%25&quot; to &quot;%25MYDLL%25&quot;&#xD;&#xA;  COPY &quot;%25UNITY_DLL%25&quot;  %25MYDLL%25&#xD;&#xA;)&#xD;&#xA;" />
+  </Target>
+
+</Project>
