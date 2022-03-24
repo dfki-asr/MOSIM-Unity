@@ -36,7 +36,7 @@ call "%MOSIM_UNITY%" -quit -batchmode -logFile build.log -projectPath "." -execu
 
 if %ERRORLEVEL% EQU 0 (
   COPY .\configurations\avatar.mos build\
-  COPY ..\description.json build\
+  COPY .\description.json build\
   ECHO [92mSuccessfully deployed Unity Adapter[0m
   exit /b 0
 ) else (
