@@ -155,7 +155,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: f89fd55a48b6d114d99518040b8f309e, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  mmuPath: 
+  mmuPath: E:\code\NewMOSIM\test2\testEnv\Environment\MMUs
 --- !u!114 &48871616
 MonoBehaviour:
   m_ObjectHideFlags: 0
