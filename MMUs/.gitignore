@@ -399,4 +399,4 @@ FodyWeavers.xsd
 
 UnityEngine.dll
 
-build
+**/build/*

@@ -171,9 +171,11 @@ exit /b
 	cd %dirname%
 	
 	if %VERBOSE%==1 (
+		"%MOSIM_MSBUILD%" %filename% -t:restore -p:RestorePackagesConfig=true
 		"%MOSIM_MSBUILD%" %filename% -t:Build -p:Configuration=%mode% -flp:logfile=build.log
 	) else (
 		>deploy.log (
+			"%MOSIM_MSBUILD%" %filename% -t:restore -p:RestorePackagesConfig=true
 			"%MOSIM_MSBUILD%" %filename% -t:Build -p:Configuration=%mode% -flp:logfile=build.log
 		)
 	)
