@@ -7,7 +7,7 @@
     "com.unity.textmeshpro": "2.1.4",
     "com.unity.timeline": "1.2.18",
     "com.unity.ugui": "1.0.0",
-    "de.dfki.mmiunity-core": "file:E:/code/NewMOSIM/test2/MOSIM/Repos/Packages/MMIUnity-Core",
+    "de.dfki.mmiunity-core": "https://github.com/dfki-asr/MMIUnity-Core.git#feature/InitialSetup",
     "com.unity.modules.ai": "1.0.0",
     "com.unity.modules.androidjni": "1.0.0",
     "com.unity.modules.animation": "1.0.0",

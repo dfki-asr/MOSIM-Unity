@@ -72,10 +72,11 @@
       }
     },
     "de.dfki.mmiunity-core": {
-      "version": "file:E:/code/NewMOSIM/test2/MOSIM/Repos/Packages/MMIUnity-Core",
+      "version": "https://github.com/dfki-asr/MMIUnity-Core.git#feature/InitialSetup",
       "depth": 0,
-      "source": "local",
-      "dependencies": {}
+      "source": "git",
+      "dependencies": {},
+      "hash": "aadbd119a8c84f52d13311180977bbae18dd9449"
     },
     "com.unity.modules.ai": {
       "version": "1.0.0",

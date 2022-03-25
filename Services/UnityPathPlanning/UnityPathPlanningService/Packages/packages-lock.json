@@ -112,11 +112,11 @@
       "url": "https://packages.unity.com"
     },
     "de.dfki.mmiunity-core": {
-      "version": "ssh://git@github.com/dfki-asr/MMIUnity-Core.git#feature/InitialSetup",
+      "version": "https://github.com/dfki-asr/MMIUnity-Core.git#feature/InitialSetup",
       "depth": 0,
       "source": "git",
       "dependencies": {},
-      "hash": "08470fd200b4b0f6aef4d664b22657dbbf797f07"
+      "hash": "aadbd119a8c84f52d13311180977bbae18dd9449"
     },
     "nuget.mono-cecil": {
       "version": "0.1.6-preview",
