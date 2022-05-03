@@ -79,18 +79,20 @@
       }
     },
     "de.dfki.mmiunity-core": {
-      "version": "file:E:/code/NewMOSIM/MOSIM/Repos/Packages/MMIUnity-Core",
+      "version": "https://github.com/dfki-asr/MMIUnity-Core.git#feature/InitialSetup",
       "depth": 0,
-      "source": "local",
-      "dependencies": {}
+      "source": "git",
+      "dependencies": {},
+      "hash": "aadbd119a8c84f52d13311180977bbae18dd9449"
     },
     "de.dfki.mmiunity-targetengine": {
-      "version": "file:E:/code/NewMOSIM/MOSIM/Repos/Packages/MMIUnity-TargetEngine",
+      "version": "https://github.com/dfki-asr/MMIUnity-TargetEngine.git#feature/InitialSetup",
       "depth": 0,
-      "source": "local",
+      "source": "git",
       "dependencies": {
         "com.unity.nuget.newtonsoft-json": "2.0.0"
-      }
+      },
+      "hash": "f12b39107c48e97f5659d2e03ef04e506a5857e6"
     },
     "com.unity.modules.ai": {
       "version": "1.0.0",
