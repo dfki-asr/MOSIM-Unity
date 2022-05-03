@@ -7,6 +7,8 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "dfki.mmiunity-core", "dfki.
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Idle", "Idle\Idle.csproj", "{219878ED-8BBF-4A23-920A-AAE7F1B6377F}"
 EndProject
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "UnityLocomotionMMU", "Locomotion\UnityLocomotionMMU.csproj", "{28C438DF-67F8-4E01-8B76-6D5918AB7ADC}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -21,6 +23,10 @@ Global
 		{219878ED-8BBF-4A23-920A-AAE7F1B6377F}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{219878ED-8BBF-4A23-920A-AAE7F1B6377F}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{219878ED-8BBF-4A23-920A-AAE7F1B6377F}.Release|Any CPU.Build.0 = Release|Any CPU
+		{28C438DF-67F8-4E01-8B76-6D5918AB7ADC}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{28C438DF-67F8-4E01-8B76-6D5918AB7ADC}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{28C438DF-67F8-4E01-8B76-6D5918AB7ADC}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{28C438DF-67F8-4E01-8B76-6D5918AB7ADC}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
