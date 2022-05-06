@@ -21,13 +21,6 @@
       },
       "url": "https://packages.unity.com"
     },
-    "com.unity.collab-proxy": {
-      "version": "1.2.16",
-      "depth": 0,
-      "source": "registry",
-      "dependencies": {},
-      "url": "https://packages.unity.com"
-    },
     "com.unity.ext.nunit": {
       "version": "1.0.6",
       "depth": 1,
@@ -71,15 +64,6 @@
       },
       "url": "https://packages.unity.com"
     },
-    "com.unity.textmeshpro": {
-      "version": "2.1.4",
-      "depth": 0,
-      "source": "registry",
-      "dependencies": {
-        "com.unity.ugui": "1.0.0"
-      },
-      "url": "https://packages.unity.com"
-    },
     "com.unity.timeline": {
       "version": "1.2.18",
       "depth": 0,
@@ -112,11 +96,11 @@
       "url": "https://packages.unity.com"
     },
     "de.dfki.mmiunity-core": {
-      "version": "https://github.com/dfki-asr/MMIUnity-Core.git#feature/InitialSetup",
+      "version": "https://github.com/dfki-asr/MMIUnity-Core.git",
       "depth": 0,
       "source": "git",
       "dependencies": {},
-      "hash": "aadbd119a8c84f52d13311180977bbae18dd9449"
+      "hash": "01125a674c64fe8aed9943014b88a387323b1c06"
     },
     "nuget.mono-cecil": {
       "version": "0.1.6-preview",
