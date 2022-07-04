@@ -79,14 +79,14 @@
       }
     },
     "de.dfki.mmiunity-core": {
-      "version": "https://github.com/dfki-asr/MMIUnity-Core.git#feature/InitialSetup",
+      "version": "https://github.com/dfki-asr/MMIUnity-Core.git",
       "depth": 0,
       "source": "git",
       "dependencies": {},
-      "hash": "aadbd119a8c84f52d13311180977bbae18dd9449"
+      "hash": "01125a674c64fe8aed9943014b88a387323b1c06"
     },
     "de.dfki.mmiunity-targetengine": {
-      "version": "https://github.com/dfki-asr/MMIUnity-TargetEngine.git#feature/InitialSetup",
+      "version": "https://github.com/dfki-asr/MMIUnity-TargetEngine.git",
       "depth": 0,
       "source": "git",
       "dependencies": {
