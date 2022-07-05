@@ -41,6 +41,12 @@ public class MultipleAvatarSceneManager : MonoBehaviour
     private const string MOTION_IDLE = "Pose/Idle";
     private const string MOTION_WALK = "Locomotion/Walk";
     private const string MOTION_REACH = "Pose/Reach";
+
+    private string _status;
+    private bool _started = false;
+    public string filename = "test.csv";
+    private int counter = 0;
+    private int _activeAgentCounter = 0;
     
     private void Start()
     {
@@ -74,6 +80,9 @@ public class MultipleAvatarSceneManager : MonoBehaviour
 
         SelectedAvatarDropdown.options.AddRange(
             avatarBehaviours.Select(a => new Dropdown.OptionData(a.name)).ToArray());
+
+        CSVWriter.ChangeFileName(filename);
+        CSVWriter.CreateCSVwithString("Counter;Frame;SystemTime;TimePerFrame;Number of Agents;Statusses");
     }
 
     private void spawnAvatarAndWalkTarget(int avatarIndex)
@@ -179,6 +188,7 @@ public class MultipleAvatarSceneManager : MonoBehaviour
 
     public void WalkAll()
     {
+        _activeAgentCounter = avatarBehaviours.Count;
         for (int i = 0; i < avatarBehaviours.Count; ++i)
         {
             var avatarBehaviour = avatarBehaviours[i];
@@ -209,7 +219,12 @@ public class MultipleAvatarSceneManager : MonoBehaviour
             //Assign walk and idle instruction
             avatarBehaviour.MMICoSimulator.AssignInstruction(walkInstruction, simstate);
             avatarBehaviour.MMICoSimulator.AssignInstruction(idleInstruction, simstate);
+            //Added for CSV
+            avatarBehaviour.MMICoSimulator.MSimulationEventHandler += CoSimulator_MSimulationEventHandler;
         }
+        //Added for CSV2
+        CSVWriter.StartConCurrentCSVWrite();
+        _started = true;
     }
 
     public void WalkSelected()
@@ -244,6 +259,11 @@ public class MultipleAvatarSceneManager : MonoBehaviour
             //Assign walk and idle instruction
             selectedAvatar.MMICoSimulator.AssignInstruction(walkInstruction, simstate);
             selectedAvatar.MMICoSimulator.AssignInstruction(idleInstruction, simstate);
+            // Added for CSV
+            _activeAgentCounter = 1;
+            selectedAvatar.MMICoSimulator.MSimulationEventHandler += CoSimulator_MSimulationEventHandler;
+            CSVWriter.StartConCurrentCSVWrite();
+            _started = true;
         }
         else
             StatusText.text = "Select avatar first";
@@ -269,10 +289,18 @@ public class MultipleAvatarSceneManager : MonoBehaviour
                 StartCondition = walkInstruction.ID + ":" + mmiConstants.MSimulationEvent_End
             };
 
+            //Was missing.
+            selectedAvatar.MMICoSimulator.Abort();
+
             MSimulationState simstate = new MSimulationState(
                 selectedAvatar.MMIAvatar.GetPosture(), selectedAvatar.MMIAvatar.GetPosture());
             selectedAvatar.MMICoSimulator.AssignInstruction(walkInstruction, simstate);
             selectedAvatar.MMICoSimulator.AssignInstruction(reachRight, simstate);
+            //Added for CSV
+            _activeAgentCounter = 1;
+            selectedAvatar.MMICoSimulator.MSimulationEventHandler += CoSimulator_MSimulationEventHandler;
+            CSVWriter.StartConCurrentCSVWrite();
+            _started = true;
         }
         else
             StatusText.text = "Select avatar first";
@@ -300,6 +328,70 @@ public class MultipleAvatarSceneManager : MonoBehaviour
             Gizmos.color = new Color(1, 0.5f, 0);
             Vector3 markerSize = new Vector3(1, 0, 1);
             Gizmos.DrawWireCube(selectedAvatar.transform.position, markerSize);
+        }
+    }
+
+    //Added for CSV
+    private void Update()
+    {
+        if (_started)
+        {
+            //Debug.Log(counter + " " + this.CoSimulator.FrameNumber + " "+ System.DateTime.Now.Ticks + " " + Time.deltaTime + " " + status);
+            CSVWriter.AddToQueue(counter + ";" + avatarBehaviours[0].MMICoSimulator.FrameNumber + ";" + System.DateTime.Now.Ticks / 10000 + ";" + Time.deltaTime + ";" + avatarBehaviours.Count + ";" +  _status);
+            counter++;
+        }
+    }
+
+    private void Awake()
+    {
+        //Parse Numbers in international instead German format.
+        System.Threading.Thread.CurrentThread.CurrentCulture = new System.Globalization.CultureInfo("en-US");
+    }
+
+    private void StopBehaviour()
+    {
+        for (int i = 0; i < avatarBehaviours.Count; ++i)
+        {
+            avatarBehaviours[i].MMICoSimulator.MSimulationEventHandler -= this.CoSimulator_MSimulationEventHandler;
+        }
+        _started = false;
+        CSVWriter.StopThread();
+
+    }
+
+    /// <summary>
+    /// Callback for the co-simulation event handler
+    /// </summary>
+    /// <param name="sender"></param>
+    /// <param name="e"></param>
+    private void CoSimulator_MSimulationEventHandler(object sender, MSimulationEvent e)
+    {
+        //Debug.Log(e.Reference + " " + e.Name + " " + e.Type);
+        _status = "(";
+        for(int i = 0; i< avatarBehaviours.Count; i++)
+        {
+            if (i > 0)
+                _status += ", ";
+
+            if (avatarBehaviours[i].MMICoSimulator.GetActiveInstructions().Count > 0)
+            {
+                _status += avatarBehaviours[i].MMICoSimulator.GetActiveInstructions()[0].Name;
+            } else
+            {
+                _status += "No Instruction";
+            }
+        }
+        _status += ")";
+        if (e.Name == "Idle" || (e.Name.Contains("reach") && e.Type=="end"))
+        {
+            _activeAgentCounter--;
+            //Debug.Log(_activeAgentCounter);
+            if (_activeAgentCounter <= 0)
+            {
+                StopBehaviour();
+                Debug.Log("Stopped");
+                _activeAgentCounter = 0;
+            }
         }
     }
 }

@@ -20,7 +20,6 @@ public static class CSVWriter {
     public static void AddToQueue(string s)
     {
         _queue.Enqueue(s);
-        Debug.Log(_queue.Count);
     }
 
     public static void StartConCurrentCSVWrite()

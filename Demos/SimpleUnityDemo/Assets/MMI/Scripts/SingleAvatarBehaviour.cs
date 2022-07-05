@@ -26,7 +26,11 @@ public class SingleAvatarBehaviour : AvatarBehavior
     private readonly string MOTION_IDLE = "Pose/Idle";
     private readonly string MOTION_REACH = "Pose/Reach";
 
-
+    private void Awake()
+    {
+        //Parse Numbers in international instead German format.
+        System.Threading.Thread.CurrentThread.CurrentCulture = new System.Globalization.CultureInfo("en-US");
+    }
     protected override void GUIBehaviorInput()
     {
         if (GUI.Button(new Rect(140, 10, 120, 25), "Walk to and Reach"))
