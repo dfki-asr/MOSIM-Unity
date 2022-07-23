@@ -4,6 +4,7 @@
 
 using MMICSharp.Common.Attributes;
 using MMICSharp.Common.Communication;
+using MMICSharp.MMICSharp_Core.MMICore.Common.Tools;
 using MMIStandard;
 using MMIUnity;
 using System;
@@ -157,7 +158,8 @@ namespace UnityLocomotionMMU
 
 
         #endregion
-
+        
+        private static TimeProfiler timeProfiler = TimeProfiler.GetProfiler("UnityLocomotionMMULog", "MMUs");
 
         /// <summary>
         /// Basic awake routine
@@ -181,7 +183,9 @@ namespace UnityLocomotionMMU
         /// <param name="properties"></param>
         /// <returns></returns>
         public override MBoolResponse Initialize(MAvatarDescription avatarDescription, Dictionary<string, string> properties)
-        {         
+        {
+            var stopwatch = timeProfiler.StartWatch();
+
             //Assign the vatar description
             this.AvatarDescription = avatarDescription;
 
@@ -200,6 +204,8 @@ namespace UnityLocomotionMMU
                 this.animator.Update(0);
 
             });
+
+            timeProfiler.StopWatch("UnityLocomotionMMUImpl_Initialize", stopwatch, Time.frameCount);
 
             return new MBoolResponse(true);
 
@@ -229,6 +235,8 @@ namespace UnityLocomotionMMU
 
         public override MBoolResponse AssignInstruction(MInstruction instruction, MSimulationState simulationState)
         {
+            var stopwatch = timeProfiler.StartWatch();
+
             //Create a response
             MBoolResponse response = new MBoolResponse(true);
 
@@ -406,6 +414,7 @@ namespace UnityLocomotionMMU
                 }
             });
 
+            timeProfiler.StopWatch("UnityLocomotionMMUImpl_AssignInstruction", stopwatch, Time.frameCount);
 
             return response;
         }
@@ -417,6 +426,8 @@ namespace UnityLocomotionMMU
         /// <param name="timespan"></param>
         public override MSimulationResult DoStep(double time, MSimulationState simulationState)
         {
+            var stopwatch = timeProfiler.StartWatch();
+
             //Create a simulation result
             MSimulationResult result = new MSimulationResult()
             {
@@ -513,7 +524,14 @@ namespace UnityLocomotionMMU
                 }
             });
 
+            timeProfiler.StopWatch("UnityLocomotionMMUImpl_DoStep", stopwatch, Time.frameCount);
+
             return result;
+        }
+        
+        private void OnApplicationQuit()
+        {
+            TimeProfiler.CloseLoggers();
         }
 
 
