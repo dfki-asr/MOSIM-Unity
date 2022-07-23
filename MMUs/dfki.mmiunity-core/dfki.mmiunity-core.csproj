@@ -6,6 +6,10 @@
   </PropertyGroup>
 
   <ItemGroup>
+    <PackageReference Include="NLog" Version="5.0.1" />
+  </ItemGroup>
+
+  <ItemGroup>
     <Reference Include="System.Threading.Tasks.Extensions">
       <HintPath>MMIUnity-Core\Runtime\plugins\System.Threading.Tasks.Extensions.dll</HintPath>
     </Reference>

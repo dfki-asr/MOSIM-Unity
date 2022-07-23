@@ -4267,7 +4267,7 @@ MonoBehaviour:
   PlaneCollider: {fileID: 1833403766}
   WalkToReachTarget: {fileID: 1718636888}
   ReachTarget: {fileID: 1424009371}
-  AvatarsNumber: 2
+  AvatarsNumber: 1
   MinSpawnDistance: 1
   EdgeOffset: 0.5
   AvatarPrefab: {fileID: 591183611196449447, guid: 6b0de27fd96933146859e1de4f1934aa,
@@ -4277,7 +4277,6 @@ MonoBehaviour:
   CanvasGroup: {fileID: 956278097}
   SelectedAvatarDropdown: {fileID: 884466783}
   StatusText: {fileID: 388536008}
-  filename: test.csv
 --- !u!1 &1638314644
 GameObject:
   m_ObjectHideFlags: 0
