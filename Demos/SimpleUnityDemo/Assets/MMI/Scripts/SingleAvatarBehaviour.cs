@@ -4,8 +4,10 @@ using MMIStandard;
 using MMIUnity.TargetEngine;
 using MMIUnity.TargetEngine.Scene;
 using UnityEngine;
+using MMICSharp.MMICSharp_Core.MMICore.Common.Tools;
 
 using System.IO;
+using System;
 
 /// <summary>
 /// Via this script the Avatar will perform walk to random spot and reach corresponding point commands. The corresponding scene can be used to record MMU and Cosimulator Timings.
@@ -14,32 +16,42 @@ public class SingleAvatarBehaviour : AvatarBehavior
 {
     public GameObject[] targets;
 
+    private bool stopped = false;
+
     private readonly string MOTION_WALK = "Locomotion/Walk";
     private readonly string MOTION_IDLE = "Pose/Idle";
     private readonly string MOTION_REACH = "Pose/Reach";
 
+    private const string InitID = "SingleAvatar initialization time";
+    private const string UpdateID = "Last Update frame time span";
+    private static TimeProfiler timeProfiler = TimeProfiler.GetProfiler("SingleAvatarDemo", "Demos");
 
     protected override void GUIBehaviorInput()
     {
         if (GUI.Button(new Rect(140, 10, 120, 25), "Walk to and Reach"))
         {
+            stopped = false;
             InitiateBehaviour();
         }
 
         if (GUI.Button(new Rect(280, 10, 120, 25), "Stop Procedure"))
         {
-            StopBehaviour();
+            stopped = true;
+            StopBehaviour();            
         }
     }
-
     public void StopBehaviour()
     {
+        timeProfiler.StopWatchScattered(UpdateID, Time.frameCount);
+        var stopwatch = timeProfiler.StartWatch();
         this.CoSimulator.MSimulationEventHandler -= this.CoSimulator_MSimulationEventHandler;
         this.CoSimulator.Abort();
+        timeProfiler.StopWatch("Stopped all behaviours", stopwatch, Time.frameCount);
     }
 
     public void InitiateBehaviour()
     {
+        var stopwatch = timeProfiler.StartWatch();
         this.CoSimulator.MSimulationEventHandler -= this.CoSimulator_MSimulationEventHandler;
         var randomTarget = randomizeSelection();
 
@@ -77,6 +89,8 @@ public class SingleAvatarBehaviour : AvatarBehavior
         this.CoSimulator.AssignInstruction(ReachInstruction, currentState);
         this.CoSimulator.AssignInstruction(idleInstruction, currentState);
         this.CoSimulator.MSimulationEventHandler += this.CoSimulator_MSimulationEventHandler;
+
+        timeProfiler.StopWatch("Single Avatar walk + reach random operation", stopwatch, Time.frameCount);
     }
 
     private GameObject randomizeSelection()
@@ -94,6 +108,26 @@ public class SingleAvatarBehaviour : AvatarBehavior
         if (e.Name == "Idle")
         {
             InitiateBehaviour();
+        }
+    }
+    protected override void Start()
+    {
+        base.Start();
+        timeProfiler.StartWatchScattered(InitID);
+        this.avatar.OnInitialized += OnInit;
+    }
+
+    private void OnInit(object sender, EventArgs e)
+    {
+        timeProfiler.StopWatchScattered(InitID, Time.frameCount);
+    }
+
+    void Update()
+    {
+        if (!stopped)
+        {
+            timeProfiler.StopWatchScattered(UpdateID, Time.frameCount);
+            timeProfiler.StartWatchScattered(UpdateID);
         }
     }
 }
