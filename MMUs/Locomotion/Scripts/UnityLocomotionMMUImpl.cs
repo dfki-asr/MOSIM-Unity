@@ -184,7 +184,6 @@ namespace UnityLocomotionMMU
         /// <returns></returns>
         public override MBoolResponse Initialize(MAvatarDescription avatarDescription, Dictionary<string, string> properties)
         {
-            var stopwatch = timeProfiler.StartWatch();
 
             //Assign the vatar description
             this.AvatarDescription = avatarDescription;
@@ -192,6 +191,7 @@ namespace UnityLocomotionMMU
             //Execute instructions on main thread
             this.ExecuteOnMainThread(() =>
             {
+                var stopwatch = timeProfiler.StartWatch();
                 base.Initialize(avatarDescription, properties);
 
 
@@ -202,10 +202,10 @@ namespace UnityLocomotionMMU
 
                 //Update the animator to establish a first posture
                 this.animator.Update(0);
+                timeProfiler.StopWatch("UnityLocomotionMMUImpl_Initialize", stopwatch, Time.frameCount);
 
             });
 
-            timeProfiler.StopWatch("UnityLocomotionMMUImpl_Initialize", stopwatch, Time.frameCount);
 
             return new MBoolResponse(true);
 
@@ -235,8 +235,6 @@ namespace UnityLocomotionMMU
 
         public override MBoolResponse AssignInstruction(MInstruction instruction, MSimulationState simulationState)
         {
-            var stopwatch = timeProfiler.StartWatch();
-
             //Create a response
             MBoolResponse response = new MBoolResponse(true);
 
@@ -287,6 +285,8 @@ namespace UnityLocomotionMMU
             //Execute instructions on main thread
             this.ExecuteOnMainThread(() =>
             {
+                var stopwatch = timeProfiler.StartWatch();
+
                 //Set the channel data of the current simulation state
                 this.SkeletonAccess.SetChannelData(this.simulationState.Current);
 
@@ -412,10 +412,10 @@ namespace UnityLocomotionMMU
                     this.leftFootAnimationTracker.Reset();
                     this.rightFootAnimationTracker.Reset();
                 }
+
+                timeProfiler.StopWatch("UnityLocomotionMMUImpl_AssignInstruction", stopwatch, Time.frameCount);
             });
-
-            timeProfiler.StopWatch("UnityLocomotionMMUImpl_AssignInstruction", stopwatch, Time.frameCount);
-
+            
             return response;
         }
 
@@ -426,8 +426,6 @@ namespace UnityLocomotionMMU
         /// <param name="timespan"></param>
         public override MSimulationResult DoStep(double time, MSimulationState simulationState)
         {
-            var stopwatch = timeProfiler.StartWatch();
-
             //Create a simulation result
             MSimulationResult result = new MSimulationResult()
             {
@@ -481,6 +479,7 @@ namespace UnityLocomotionMMU
             //Execute instructions on main thread
             this.ExecuteOnMainThread(() =>
             {
+                var stopwatch = timeProfiler.StartWatch();
                 try
                 {
 
@@ -522,9 +521,10 @@ namespace UnityLocomotionMMU
                 {
                     MMICSharp.Logger.Log(MMICSharp.Log_level.L_ERROR, $"Problem within do-step of UnityLocomotionMMU: {e.Message} {e.StackTrace}");
                 }
+
+                timeProfiler.StopWatch("UnityLocomotionMMUImpl_DoStep", stopwatch, Time.frameCount);
             });
 
-            timeProfiler.StopWatch("UnityLocomotionMMUImpl_DoStep", stopwatch, Time.frameCount);
 
             return result;
         }
