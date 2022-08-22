@@ -429,7 +429,7 @@ namespace UnityLocomotionMMU
             //Abort the whole MMU if required
             if (abort)
             {
-                result.Events.Add(new MSimulationEvent("No path found", MMIStandard.mmiConstants.MSimulationEvent_Abort, this.instruction.ID));
+                result.Events.Add(new MSimulationEvent("No path found", mmiConstants.MSimulationEvent_Abort, this.instruction.ID));
                 return result;
             }
 
