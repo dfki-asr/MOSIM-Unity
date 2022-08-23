@@ -33,7 +33,7 @@ public class TestAvatarBehavior : AvatarBehavior
 
 
 
-            MInstruction instruction = new MInstruction(MInstructionFactory.GenerateID(), "Idle", MOTION_IDLE);
+            MInstruction instruction = new MInstruction(MInstructionFactory.GenerateID(), "Idle", MOTION_IDLE, this.avatar.MAvatar.ID);
             //MInstruction instruction = new MInstruction(MInstructionFactory.GenerateID(), "MMUTest", "Object/Move");
             MSimulationState simstate = new MSimulationState(this.avatar.GetPosture(), this.avatar.GetPosture());
 
@@ -46,12 +46,12 @@ public class TestAvatarBehavior : AvatarBehavior
 
         if (GUI.Button(new Rect(140, 10, 120, buttonHeight), "Walk to"))
         {
-            MInstruction walkInstruction = new MInstruction(MInstructionFactory.GenerateID(), "Walk", MOTION_WALK)
+            MInstruction walkInstruction = new MInstruction(MInstructionFactory.GenerateID(), "Walk", MOTION_WALK, this.avatar.MAvatar.ID)
             {
                 Properties = PropertiesCreator.Create("TargetID", UnitySceneAccess.Instance.GetSceneObjectByName("WalkTarget").ID)
             };
 
-            MInstruction idleInstruction = new MInstruction(MInstructionFactory.GenerateID(), "Idle", MOTION_IDLE)
+            MInstruction idleInstruction = new MInstruction(MInstructionFactory.GenerateID(), "Idle", MOTION_IDLE, this.avatar.MAvatar.ID)
             {
                 //Start idle after walk has been finished
                 StartCondition = walkInstruction.ID + ":" + mmiConstants.MSimulationEvent_End //synchronization constraint similar to bml "id:End"  (bml original: <bml start="id:End"/>
@@ -72,10 +72,10 @@ public class TestAvatarBehavior : AvatarBehavior
         if (GUI.Button(new Rect(270, 10, 120, buttonHeight), "Reach Object"))
         {
 
-            MInstruction idleInstruction = new MInstruction(MInstructionFactory.GenerateID(), "Idle", MOTION_IDLE);
+            MInstruction idleInstruction = new MInstruction(MInstructionFactory.GenerateID(), "Idle", MOTION_IDLE, this.avatar.MAvatar.ID);
 
 
-            MInstruction reachRight = new MInstruction(MInstructionFactory.GenerateID(), "reach right", MOTION_REACH)
+            MInstruction reachRight = new MInstruction(MInstructionFactory.GenerateID(), "reach right", MOTION_REACH, this.avatar.MAvatar.ID)
             {
                 Properties = PropertiesCreator.Create("TargetID", UnitySceneAccess.Instance["GraspTargetL"].ID, "Hand", "Left", "MinDistance", 2.0.ToString()),
             };
@@ -97,9 +97,9 @@ public class TestAvatarBehavior : AvatarBehavior
 
         if (GUI.Button(new Rect(400, 10, 120, buttonHeight), "Move Object"))
         {
-            MInstruction idleInstruction = new MInstruction(MInstructionFactory.GenerateID(), "Idle", MOTION_IDLE);
+            MInstruction idleInstruction = new MInstruction(MInstructionFactory.GenerateID(), "Idle", MOTION_IDLE, this.avatar.MAvatar.ID);
 
-            MInstruction moveObject = new MInstruction(MInstructionFactory.GenerateID(), "move object", MOTION_MOVE)
+            MInstruction moveObject = new MInstruction(MInstructionFactory.GenerateID(), "move object", MOTION_MOVE, this.avatar.MAvatar.ID)
             {
                 Properties = PropertiesCreator.Create("SubjectID", UnitySceneAccess.Instance["GraspObject"].ID, "Hand", "Left", "TargetID", UnitySceneAccess.Instance["PositioningTarget"].ID),
             };
@@ -112,15 +112,15 @@ public class TestAvatarBehavior : AvatarBehavior
 
         if (GUI.Button(new Rect(530, 10, 120, buttonHeight), "Pick-up"))
         {
-            MInstruction idleInstruction = new MInstruction(MInstructionFactory.GenerateID(), "Idle", MOTION_IDLE);
+            MInstruction idleInstruction = new MInstruction(MInstructionFactory.GenerateID(), "Idle", MOTION_IDLE, this.avatar.MAvatar.ID);
 
-            MInstruction reachInstruction = new MInstruction(MInstructionFactory.GenerateID(), "reach", MOTION_REACH)
+            MInstruction reachInstruction = new MInstruction(MInstructionFactory.GenerateID(), "reach", MOTION_REACH, this.avatar.MAvatar.ID)
             {
                 Properties = PropertiesCreator.Create("TargetID", UnitySceneAccess.Instance["GraspTargetL"].ID, "Hand", "Left"),
             };
 
             carryID = MInstructionFactory.GenerateID();
-            MInstruction carryInstruction = new MInstruction(carryID, "carry object", MOTION_CARRY)
+            MInstruction carryInstruction = new MInstruction(carryID, "carry object", MOTION_CARRY, this.avatar.MAvatar.ID)
             {
                 Properties = PropertiesCreator.Create("TargetID", UnitySceneAccess.Instance["GraspObject"].ID, "Hand", "Left"),
                 StartCondition = reachInstruction.ID +":"+ mmiConstants.MSimulationEvent_End + "+ 0.01"
@@ -137,7 +137,7 @@ public class TestAvatarBehavior : AvatarBehavior
         if (GUI.Button(new Rect(660, 10, 120, buttonHeight), "Carry Object"))
         {
             carryID = MInstructionFactory.GenerateID();
-            MInstruction carryInstruction = new MInstruction(carryID, "carry object", MOTION_CARRY)
+            MInstruction carryInstruction = new MInstruction(carryID, "carry object", MOTION_CARRY, this.avatar.MAvatar.ID)
             {
                 Properties = PropertiesCreator.Create("TargetID", UnitySceneAccess.Instance["GraspObject"].ID, "Hand", "Right")//, "CarryTarget", UnitySceneAccess.Instance["CarryTarget"].ID),
             };
@@ -150,11 +150,11 @@ public class TestAvatarBehavior : AvatarBehavior
 
         if (GUI.Button(new Rect(790, 10, 120, buttonHeight), "Release Object"))
         {
-            MInstruction releaseRight = new MInstruction(MInstructionFactory.GenerateID(), "release object", MOTION_RELEASE)
+            MInstruction releaseRight = new MInstruction(MInstructionFactory.GenerateID(), "release object", MOTION_RELEASE, this.avatar.MAvatar.ID)
             {
                 Properties = PropertiesCreator.Create( "Hand", "Right", CoSimTopic.OnStart, carryID + ":" + CoSimAction.EndInstruction),
             };
-            MInstruction releaseLeft = new MInstruction(MInstructionFactory.GenerateID(), "release object", MOTION_RELEASE)
+            MInstruction releaseLeft = new MInstruction(MInstructionFactory.GenerateID(), "release object", MOTION_RELEASE, this.avatar.MAvatar.ID)
             {
                 Properties = PropertiesCreator.Create("Hand", "Left", CoSimTopic.OnStart, carryID + ":" + CoSimAction.EndInstruction),
             };
@@ -169,44 +169,44 @@ public class TestAvatarBehavior : AvatarBehavior
         if (GUI.Button(new Rect(10, 40, 160, buttonHeight), "Concurrent scenario"))
         {
 
-            MInstruction walkInstruction1 = new MInstruction(MInstructionFactory.GenerateID(), "Walk", MOTION_WALK)
+            MInstruction walkInstruction1 = new MInstruction(MInstructionFactory.GenerateID(), "Walk", MOTION_WALK, this.avatar.MAvatar.ID)
             {
                 Properties = PropertiesCreator.Create("TargetID", UnitySceneAccess.Instance.GetSceneObjectByName("WalkTargetConcurrent").ID),
             };
 
-            MInstruction idleInstruction = new MInstruction(MInstructionFactory.GenerateID(), "Idle", MOTION_IDLE)
+            MInstruction idleInstruction = new MInstruction(MInstructionFactory.GenerateID(), "Idle", MOTION_IDLE, this.avatar.MAvatar.ID)
             {
                 StartCondition = walkInstruction1.ID + ":" + mmiConstants.MSimulationEvent_End
             };
 
 
-            MInstruction reachRight = new MInstruction(MInstructionFactory.GenerateID(), "reach right", MOTION_REACH)
+            MInstruction reachRight = new MInstruction(MInstructionFactory.GenerateID(), "reach right", MOTION_REACH, this.avatar.MAvatar.ID)
             {
                 Properties = PropertiesCreator.Create("TargetID", UnitySceneAccess.Instance["GraspTarget2R"].ID, "Hand", "Right"),
                 StartCondition = walkInstruction1.ID + ":" + mmiConstants.MSimulationEvent_End
             };
 
 
-            MInstruction reachLeft = new MInstruction(MInstructionFactory.GenerateID(), "reach left", MOTION_REACH)
+            MInstruction reachLeft = new MInstruction(MInstructionFactory.GenerateID(), "reach left", MOTION_REACH, this.avatar.MAvatar.ID)
             {
                 Properties = PropertiesCreator.Create("TargetID", UnitySceneAccess.Instance["GraspTargetL"].ID, "Hand", "Left"),
                 StartCondition = walkInstruction1.ID + ":" + mmiConstants.MSimulationEvent_End
             };
 
 
-            MInstruction carryLeft = new MInstruction(MInstructionFactory.GenerateID(), "carry left", MOTION_CARRY)
+            MInstruction carryLeft = new MInstruction(MInstructionFactory.GenerateID(), "carry left", MOTION_CARRY, this.avatar.MAvatar.ID)
             {
                 Properties = PropertiesCreator.Create("TargetID", UnitySceneAccess.Instance["GraspObject"].ID, "Hand", "Left", "AddOffset", false.ToString()),
                 StartCondition = reachLeft.ID + ":" + mmiConstants.MSimulationEvent_End + "+ 0.01"
             };
 
-            MInstruction carryRight = new MInstruction(MInstructionFactory.GenerateID(), "carry right", MOTION_CARRY)
+            MInstruction carryRight = new MInstruction(MInstructionFactory.GenerateID(), "carry right", MOTION_CARRY, this.avatar.MAvatar.ID)
             {
                 Properties = PropertiesCreator.Create("TargetID", UnitySceneAccess.Instance["GraspObject2"].ID, "Hand", "Right" ,"AddOffset", false.ToString()),
                 StartCondition = reachRight.ID + ":" + mmiConstants.MSimulationEvent_End + "+ 0.01"
             };
 
-            MInstruction walkInstruction = new MInstruction(MInstructionFactory.GenerateID(), "Walk", MOTION_WALK)
+            MInstruction walkInstruction = new MInstruction(MInstructionFactory.GenerateID(), "Walk", MOTION_WALK, this.avatar.MAvatar.ID)
             {
                 Properties = PropertiesCreator.Create("TargetID", UnitySceneAccess.Instance.GetSceneObjectByName("WalkTarget2").ID),
                 //Both carries must me finished with positioning
@@ -219,69 +219,69 @@ public class TestAvatarBehavior : AvatarBehavior
 
 
 
-            MInstruction idleInstruction2 = new MInstruction(MInstructionFactory.GenerateID(), "Idle", MOTION_IDLE)
+            MInstruction idleInstruction2 = new MInstruction(MInstructionFactory.GenerateID(), "Idle", MOTION_IDLE, this.avatar.MAvatar.ID)
             {
                 StartCondition = walkInstruction.ID + ":" + mmiConstants.MSimulationEvent_End,
             };
 
 
-            MInstruction moveRight = new MInstruction(MInstructionFactory.GenerateID(), "move right", MOTION_MOVE)
+            MInstruction moveRight = new MInstruction(MInstructionFactory.GenerateID(), "move right", MOTION_MOVE, this.avatar.MAvatar.ID)
             {
                 Properties = PropertiesCreator.Create("TargetID", UnitySceneAccess.Instance["PositioningTargetRight"].ID,  "SubjectID", UnitySceneAccess.Instance["GraspObject2"].ID, "Hand", "Right", CoSimTopic.OnStart, carryRight.ID + ":" + CoSimAction.EndInstruction),
                 StartCondition = walkInstruction.ID + ":" + mmiConstants.MSimulationEvent_End
             };
 
-            MInstruction moveLeft = new MInstruction(MInstructionFactory.GenerateID(), "move left", MOTION_MOVE)
+            MInstruction moveLeft = new MInstruction(MInstructionFactory.GenerateID(), "move left", MOTION_MOVE, this.avatar.MAvatar.ID)
             {
                 Properties = PropertiesCreator.Create("TargetID", UnitySceneAccess.Instance["PositioningTargetLeft"].ID, "SubjectID", UnitySceneAccess.Instance["GraspObject"].ID, "Hand", "Left", CoSimTopic.OnStart, carryLeft.ID + ":" + CoSimAction.EndInstruction),
                 StartCondition = walkInstruction.ID + ":" + mmiConstants.MSimulationEvent_End
             };
 
-            MInstruction releaseRight = new MInstruction(MInstructionFactory.GenerateID(), "release right", MOTION_RELEASE)
+            MInstruction releaseRight = new MInstruction(MInstructionFactory.GenerateID(), "release right", MOTION_RELEASE, this.avatar.MAvatar.ID)
             {
                 Properties = PropertiesCreator.Create("Hand", "Right"),
                 StartCondition = moveRight.ID + ":" + mmiConstants.MSimulationEvent_End
             };
 
-            MInstruction releaseLeft = new MInstruction(MInstructionFactory.GenerateID(), "release left", MOTION_RELEASE)
+            MInstruction releaseLeft = new MInstruction(MInstructionFactory.GenerateID(), "release left", MOTION_RELEASE, this.avatar.MAvatar.ID)
             {
                 Properties = PropertiesCreator.Create("Hand", "Left"),
                 StartCondition = moveLeft.ID + ":" + mmiConstants.MSimulationEvent_End
             };
 
 
-            MInstruction walkInstruction2 = new MInstruction(MInstructionFactory.GenerateID(), "Walk2", MOTION_WALK)
+            MInstruction walkInstruction2 = new MInstruction(MInstructionFactory.GenerateID(), "Walk2", MOTION_WALK, this.avatar.MAvatar.ID)
             {
                 Properties = PropertiesCreator.Create("TargetID", UnitySceneAccess.Instance.GetSceneObjectByName("WalkTargetConcurrent").ID, CoSimTopic.OnStart, idleInstruction.ID + ":" + CoSimAction.EndInstruction),
                 StartCondition = releaseLeft.ID + ":" + mmiConstants.MSimulationEvent_End// + "|" + releaseLeft.ID + ":" + mmiConstants.MSimulationEvent_End,
             };
 
-            MInstruction idleInstruction3 = new MInstruction(MInstructionFactory.GenerateID(), "Idle", MOTION_IDLE)
+            MInstruction idleInstruction3 = new MInstruction(MInstructionFactory.GenerateID(), "Idle", MOTION_IDLE, this.avatar.MAvatar.ID)
             {
                 StartCondition = walkInstruction2.ID + ":" + mmiConstants.MSimulationEvent_End,
             };
 
 
-            MInstruction reachRight2 = new MInstruction(MInstructionFactory.GenerateID(), "reach right", MOTION_REACH)
+            MInstruction reachRight2 = new MInstruction(MInstructionFactory.GenerateID(), "reach right", MOTION_REACH, this.avatar.MAvatar.ID)
             {
                 Properties = PropertiesCreator.Create("TargetID", UnitySceneAccess.Instance["GraspTarget3R"].ID, "Hand", "Right"),
                 StartCondition = walkInstruction2.ID + ":" + mmiConstants.MSimulationEvent_End// + "|>" + releaseLeft.ID + ":" + mmiConstants.MSimulationEvent_End,
             };
 
-            MInstruction carryRight2 = new MInstruction(MInstructionFactory.GenerateID(), "carry right", MOTION_CARRY)
+            MInstruction carryRight2 = new MInstruction(MInstructionFactory.GenerateID(), "carry right", MOTION_CARRY, this.avatar.MAvatar.ID)
             {
                 Properties = PropertiesCreator.Create("TargetID", UnitySceneAccess.Instance["GraspObject3"].ID, "Hand", "Right", "AddOffset", false.ToString()),
                 StartCondition = reachRight2.ID + ":" + mmiConstants.MSimulationEvent_End + "+ 0.01"
             };
 
 
-            MInstruction walkInstruction3 = new MInstruction(MInstructionFactory.GenerateID(), "Walk2", MOTION_WALK)
+            MInstruction walkInstruction3 = new MInstruction(MInstructionFactory.GenerateID(), "Walk2", MOTION_WALK, this.avatar.MAvatar.ID)
             {
                 Properties = PropertiesCreator.Create("TargetID", UnitySceneAccess.Instance.GetSceneObjectByName("WalkTarget2").ID, CoSimTopic.OnStart, idleInstruction3.ID + ":" + CoSimAction.EndInstruction),
                 StartCondition = carryRight2.ID + ":" + "PositioningFinished"// + "|" + releaseLeft.ID + ":" + mmiConstants.MSimulationEvent_End,
             };
 
-            MInstruction idleInstruction4 = new MInstruction(MInstructionFactory.GenerateID(), "Idle", MOTION_IDLE)
+            MInstruction idleInstruction4 = new MInstruction(MInstructionFactory.GenerateID(), "Idle", MOTION_IDLE, this.avatar.MAvatar.ID)
             {
                 StartCondition = walkInstruction3.ID + ":" + mmiConstants.MSimulationEvent_End,
             };
@@ -314,30 +314,30 @@ public class TestAvatarBehavior : AvatarBehavior
 
         if (GUI.Button(new Rect(10, 70, 220, buttonHeight), "Pickup large object"))
         {
-            MInstruction walkInstruction = new MInstruction(MInstructionFactory.GenerateID(), "Walk", MOTION_WALK)
+            MInstruction walkInstruction = new MInstruction(MInstructionFactory.GenerateID(), "Walk", MOTION_WALK, this.avatar.MAvatar.ID)
             {
                 Properties = PropertiesCreator.Create("TargetID", UnitySceneAccess.Instance.GetSceneObjectByName("WalkTargetLargeObject").ID)
             };
 
-            MInstruction idleInstruction = new MInstruction(MInstructionFactory.GenerateID(), "Idle", MOTION_IDLE)
+            MInstruction idleInstruction = new MInstruction(MInstructionFactory.GenerateID(), "Idle", MOTION_IDLE, this.avatar.MAvatar.ID)
             {
                 StartCondition = walkInstruction.ID + ":" + mmiConstants.MSimulationEvent_End
             };
 
-            MInstruction reachLeft = new MInstruction(MInstructionFactory.GenerateID(), "reachLeft", MOTION_REACH)
+            MInstruction reachLeft = new MInstruction(MInstructionFactory.GenerateID(), "reachLeft", MOTION_REACH, this.avatar.MAvatar.ID)
             {
                 Properties = PropertiesCreator.Create("TargetID", UnitySceneAccess.Instance["LargeObjectGraspL"].ID, "Hand", "Left"),
                 StartCondition = walkInstruction.ID + ":" + mmiConstants.MSimulationEvent_End
             };
 
-            MInstruction reachRight = new MInstruction(MInstructionFactory.GenerateID(), "reachRight", MOTION_REACH)
+            MInstruction reachRight = new MInstruction(MInstructionFactory.GenerateID(), "reachRight", MOTION_REACH, this.avatar.MAvatar.ID)
             {
                 Properties = PropertiesCreator.Create("TargetID", UnitySceneAccess.Instance["LargeObjectGraspR"].ID, "Hand", "Right"),
                 StartCondition = walkInstruction.ID + ":" + mmiConstants.MSimulationEvent_End
             };
 
             carryID = MInstructionFactory.GenerateID();
-            MInstruction carryInstruction = new MInstruction(carryID, "carry object", MOTION_CARRY)
+            MInstruction carryInstruction = new MInstruction(carryID, "carry object", MOTION_CARRY, this.avatar.MAvatar.ID)
             {
                 Properties = PropertiesCreator.Create("TargetID", UnitySceneAccess.Instance["LargeObject"].ID, "Hand", "Both", "CarryDistance", 0.4f.ToString(), "CarryTarget", UnitySceneAccess.Instance["CarryTarget"].ID),
                 StartCondition = reachLeft.ID + ":" + mmiConstants.MSimulationEvent_End + " && " + reachRight.ID + ":" + mmiConstants.MSimulationEvent_End
@@ -354,7 +354,7 @@ public class TestAvatarBehavior : AvatarBehavior
 
         if (GUI.Button(new Rect(240, 70, 220, buttonHeight), "Move Large Object both handed"))
         {
-            MInstruction moveInstruction = new MInstruction(MInstructionFactory.GenerateID(), "move object", MOTION_MOVE)
+            MInstruction moveInstruction = new MInstruction(MInstructionFactory.GenerateID(), "move object", MOTION_MOVE, this.avatar.MAvatar.ID)
             {
                 Properties = PropertiesCreator.Create("SubjectID", UnitySceneAccess.Instance["LargeObject"].ID, "Hand", "Both", "TargetID", UnitySceneAccess.Instance["LargeObjectPositioningTarget"].ID, "HoldDuration", 1.0f.ToString()),
 
@@ -362,13 +362,13 @@ public class TestAvatarBehavior : AvatarBehavior
                 Action = CoSimTopic.OnStart + "->" + carryID + ":" + CoSimAction.EndInstruction,
             };
 
-            MInstruction releaseLeft = new MInstruction(MInstructionFactory.GenerateID(), "release object left", MOTION_RELEASE)
+            MInstruction releaseLeft = new MInstruction(MInstructionFactory.GenerateID(), "release object left", MOTION_RELEASE, this.avatar.MAvatar.ID)
             {
                 Properties = PropertiesCreator.Create("Hand", "Left"),
                 StartCondition = moveInstruction.ID + ":" + mmiConstants.MSimulationEvent_End
             };
 
-            MInstruction releaseRight = new MInstruction(MInstructionFactory.GenerateID(), "release object right", MOTION_RELEASE)
+            MInstruction releaseRight = new MInstruction(MInstructionFactory.GenerateID(), "release object right", MOTION_RELEASE, this.avatar.MAvatar.ID)
             {
                 Properties = PropertiesCreator.Create("Hand", "Right"),
                 StartCondition = moveInstruction.ID + ":" + mmiConstants.MSimulationEvent_End
@@ -385,7 +385,7 @@ public class TestAvatarBehavior : AvatarBehavior
         if (GUI.Button(new Rect(470, 70, 220, buttonHeight), "Carry Object both handed"))
         {
             carryID = MInstructionFactory.GenerateID();
-            MInstruction carryInstruction = new MInstruction(carryID, "carry object", MOTION_CARRY)
+            MInstruction carryInstruction = new MInstruction(carryID, "carry object", MOTION_CARRY, this.avatar.MAvatar.ID)
             {
                 Properties = PropertiesCreator.Create("TargetID", UnitySceneAccess.Instance["GraspObject"].ID, "Hand", "Both", "CarryTarget", UnitySceneAccess.Instance["CarryTarget"].ID),
             };
@@ -396,10 +396,10 @@ public class TestAvatarBehavior : AvatarBehavior
         if (GUI.Button(new Rect(700, 70, 210, buttonHeight), "Reach Object Single"))
         {
 
-            MInstruction idleInstruction = new MInstruction(MInstructionFactory.GenerateID(), "Idle", MOTION_IDLE);
+            MInstruction idleInstruction = new MInstruction(MInstructionFactory.GenerateID(), "Idle", MOTION_IDLE, this.avatar.MAvatar.ID);
 
 
-            MInstruction reachRight = new MInstruction(MInstructionFactory.GenerateID(), "reach right", MOTION_REACH)
+            MInstruction reachRight = new MInstruction(MInstructionFactory.GenerateID(), "reach right", MOTION_REACH, this.avatar.MAvatar.ID)
             {
                 Properties = PropertiesCreator.Create("TargetID", UnitySceneAccess.Instance["GraspTargetR"].ID, "Hand", "Right"),
             };
