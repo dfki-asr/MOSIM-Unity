@@ -255,7 +255,8 @@ public class PathPlanningService : MonoBehaviour, MPathPlanningService.Iface
                     {
                         ID = System.Guid.NewGuid().ToString(),
                         Position = new MVector3(vector.Values[0], 0f, vector.Values[1]),
-                        Rotation = new MQuaternion(0, 0, 0, 1)
+                        Rotation = new MQuaternion(0, 0, 0, 1),
+                        Scale = new MVector3(1,1,1)
                     };
 
                     //Create new position interval with a defined tolerance
@@ -271,7 +272,8 @@ public class PathPlanningService : MonoBehaviour, MPathPlanningService.Iface
                     {
                         ID = System.Guid.NewGuid().ToString(),
                         Position = new MVector3(vector.Values[0], vector.Values[1], vector.Values[2]),
-                        Rotation = new MQuaternion(0, 0, 0, 1)
+                        Rotation = new MQuaternion(0, 0, 0, 1),
+                        Scale = new MVector3(1,1,1)
                     };
 
                     //Create new position interval with a defined tolerance
