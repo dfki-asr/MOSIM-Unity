@@ -96,11 +96,11 @@
       "url": "https://packages.unity.com"
     },
     "de.dfki.mmiunity-core": {
-      "version": "https://github.com/dfki-asr/MMIUnity-Core.git",
+      "version": "https://github.com/dfki-asr/MMIUnity-Core.git#feature/FrameworkV1.1",
       "depth": 0,
       "source": "git",
       "dependencies": {},
-      "hash": "01125a674c64fe8aed9943014b88a387323b1c06"
+      "hash": "0e765b5bd2ca2ed87e5efc5c122c1f213b225403"
     },
     "nuget.mono-cecil": {
       "version": "0.1.6-preview",
