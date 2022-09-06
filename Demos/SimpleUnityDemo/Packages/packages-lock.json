@@ -79,20 +79,20 @@
       }
     },
     "de.dfki.mmiunity-core": {
-      "version": "https://github.com/dfki-asr/MMIUnity-Core.git#feature/InitialSetup",
+      "version": "https://github.com/dfki-asr/MMIUnity-Core.git#feature/FrameworkV1.1",
       "depth": 0,
       "source": "git",
       "dependencies": {},
-      "hash": "aadbd119a8c84f52d13311180977bbae18dd9449"
+      "hash": "7fbce1c935f1f91d36c755794b7d0dc6d6a91533"
     },
     "de.dfki.mmiunity-targetengine": {
-      "version": "https://github.com/dfki-asr/MMIUnity-TargetEngine.git#feature/InitialSetup",
+      "version": "https://github.com/dfki-asr/MMIUnity-TargetEngine.git#feature/FrameworkV1.1",
       "depth": 0,
       "source": "git",
       "dependencies": {
         "com.unity.nuget.newtonsoft-json": "2.0.0"
       },
-      "hash": "f12b39107c48e97f5659d2e03ef04e506a5857e6"
+      "hash": "f32e608eaa250e1f0b7bfc2b4cdbc7ab1c1ed980"
     },
     "com.unity.modules.ai": {
       "version": "1.0.0",
