@@ -11,6 +11,7 @@ public class JointAlignment : IJointAlignment
 
     private void AlignJoint(ISVisualizationJoint start, ISVisualizationJoint end)
     {
+        if(start.reference == null) { return; }
         JointController jc = start.reference.GetComponent<JointController>();
         if (jc != null && jc.wasChanged)
         {
