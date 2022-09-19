@@ -42,7 +42,8 @@ public class FlyCam : MonoBehaviour
     void Update()
     {
         transform.rotation = Quaternion.Euler(rotation);
-        transform.position = target.position - distance * transform.forward + translation;
+        if(target != null)
+            transform.position = target.position - distance * transform.forward + translation;
     }
 
     public void ClearTranslation()
