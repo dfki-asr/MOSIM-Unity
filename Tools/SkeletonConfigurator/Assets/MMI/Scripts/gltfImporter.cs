@@ -28,7 +28,7 @@ public class gltfImporter : MonoBehaviour
         newImportButton = GameObject.Find("gltf new import");
         //ControlAfterImport = GameObject.Find("Control-after-import");
         ChooseRot = GameObject.Find("Choose Root + Pelvis");
-        _Background = GameObject.Find("Background");
+        _Background = GameObject.Find("Canvas").transform.Find("Background").gameObject;
         setupscript = this.gameObject.GetComponent<StepByStepSetup>();
 
         newImportButton.GetComponent<Button>().onClick.AddListener(delegate { StartCoroutine(BrowseFile()); });
@@ -36,7 +36,7 @@ public class gltfImporter : MonoBehaviour
 
         newImportButton.SetActive(false);
         //ControlAfterImport.SetActive(false);
-        ChooseRot.SetActive(false);
+        //ChooseRot.SetActive(false);
         if (gltfLoader == null)
         {
             gltfLoader = new GameObject("Avatar");
@@ -52,6 +52,11 @@ public class gltfImporter : MonoBehaviour
         {
             GameObject.Destroy(gltfLoader);
             gltfLoader = new GameObject("Avatar");
+            var obj = GameObject.FindObjectsOfType<WorldUI>();
+            foreach(var ob in obj)
+            {
+                Destroy(ob.transform.parent.gameObject);
+            }
         }
         // Show a load file dialog and wait for a response from user
         // Load file/folder: file, Initial path: default (Documents), Title: "Load File", submit button text: "Load"
@@ -61,8 +66,10 @@ public class gltfImporter : MonoBehaviour
         // Print whether a file is chosen (FileBrowser.Success)
         // and the path to the selected file (FileBrowser.Result) (null, if FileBrowser.Success is false)
         Debug.Log(FileBrowser.Success + " " + FileBrowser.Result);
+        if (!FileBrowser.Result.Contains(".gltf"))
+            Debug.Log("You must choose a gltf file to procceed.");
 
-        if (FileBrowser.Success)
+        if (FileBrowser.Success && FileBrowser.Result.Contains(".gltf"))
         {
             var path = FileBrowser.Result;
             gltf = new GltfImport();

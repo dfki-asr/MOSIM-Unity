@@ -3,22 +3,64 @@ using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.UI;
 using MMIUnity;
+using System;
 
 public class AutoSetupInterface : MonoBehaviour
 {
     private GameObject plane;
     private GameObject sideplane;
     private GameObject rightHandPlane;
+
     public Transform root;
     public string ConfigFilePath = "";
+
+    private TestIS testis;
+    private JointMapper2 mapper;
+    private FlyCam flycam;
     // Start is called before the first frame update
     void Start()
     {
-        TestIS testis = this.GetComponent<TestIS>();
+        testis = this.GetComponent<TestIS>();
+        flycam = GameObject.FindObjectOfType<FlyCam>();
+        mapper = this.GetComponent<JointMapper2>();
+
+        var ReMap = GameObject.Find("ReMap").GetComponent<Button>();
+        ReMap.onClick.RemoveAllListeners();
+
+        var ClearMap = GameObject.Find("ClearMap").GetComponent<Button>();
+        ClearMap.onClick.RemoveAllListeners();
+
+        var ApplyRetareting = GameObject.Find("ApplyRetargeting").GetComponent<Button>();
+        ApplyRetareting.onClick.RemoveAllListeners();
+
+        ReMap.onClick.AddListener(delegate { mapper.AutoRemap(); });
+
+
+        ClearMap.onClick.AddListener(delegate { mapper.ClearMap(); });
+
+        ApplyRetareting.onClick.AddListener(delegate { try
+            {
+                testis.ResetBoneMap2();
+                GameObject.Find("ConfirmMapping").GetComponent<Button>().interactable = true;
+            }
+            catch (Exception e)
+            {
+                GameObject.Find("ConfirmMapping").GetComponent<Button>().interactable = false;
+                Debug.Log($"The retargeting could not be applied with Error:");
+                Debug.LogException(e);
+            }
+        });
+
+
+    }
+
+    public void AfterMapping()
+    {
+        testis = this.GetComponent<TestIS>();
         FlyCam flycam = GameObject.FindObjectOfType<FlyCam>();
         var resetting = GameObject.Find("Resetting").transform;
         var changeView = GameObject.Find("ChangeViewPanel").transform;
-        JointMapper2 mapper = this.GetComponent<JointMapper2>();
+        mapper = this.GetComponent<JointMapper2>();
 
         // Pelvis might face other direction than Root does. This is most probably no elegant (maybe even false) solution. 
         var topdownrotation = Quaternion.Euler(new Vector3(root.rotation.eulerAngles.x, root.GetChild(0).transform.rotation.eulerAngles.y, root.rotation.eulerAngles.x));
@@ -27,13 +69,13 @@ public class AutoSetupInterface : MonoBehaviour
         //sideRotation *= Quaternion.Euler(90, 0, 0);
 
         //Add a plane inside the avatar this might be removed down the line
-        plane = Instantiate(Resources.Load("Plane") as GameObject, root.position, frontrotation * Quaternion.Euler(90,0,0));
-        sideplane = Instantiate(Resources.Load("Plane") as GameObject, root.position, sideRotation * Quaternion.Euler(90,0,0));
-        
+        plane = Instantiate(Resources.Load("Plane") as GameObject, root.position, frontrotation * Quaternion.Euler(90, 0, 0));
+        sideplane = Instantiate(Resources.Load("Plane") as GameObject, root.position, sideRotation * Quaternion.Euler(90, 0, 0));
+
         //Scale plane so one rectangle is 10cm
-        plane.GetComponent<MeshRenderer>().material.color = new Color(1,1,1,.5f);
+        plane.GetComponent<MeshRenderer>().material.color = new Color(1, 1, 1, .5f);
         sideplane.GetComponent<MeshRenderer>().material.color = new Color(1, 1, 1, .5f);
-        var planes = new List<GameObject>() {plane, sideplane };
+        var planes = new List<GameObject>() { plane, sideplane };
         foreach (GameObject p in planes)
             p.SetActive(false);
 
@@ -58,14 +100,7 @@ public class AutoSetupInterface : MonoBehaviour
         var SkinSlider = GameObject.Find("SkinMeshOpacity").transform.Find("Slider").GetComponent<Slider>();
         SkinSlider.onValueChanged.RemoveAllListeners();
 
-        var ReMap = GameObject.Find("ReMap").GetComponent<Button>();
-        ReMap.onClick.RemoveAllListeners();
-
-        var ClearMap = GameObject.Find("ClearMap").GetComponent<Button>();
-        ClearMap.onClick.RemoveAllListeners();
-
-        var ApplyRetareting = GameObject.Find("ApplyRetargeting").GetComponent<Button>();
-        ApplyRetareting.onClick.RemoveAllListeners();
+        
 
 
         // Add listeners.
@@ -77,7 +112,7 @@ public class AutoSetupInterface : MonoBehaviour
         resetting.Find("RealignButton").GetComponent<Button>().onClick.AddListener(delegate { testis.RealignSkeletons(); });
         resetting.Find("ResetPose").GetComponent<Button>().onClick.AddListener(delegate { testis.ResetBasePosture(); });
         resetting.Find("SaveButton").GetComponent<Button>().onClick.AddListener(delegate { testis.SaveConfig(); });
-        resetting.Find("LoadButton").GetComponent<Button>().onClick.AddListener(delegate { testis.LoadConfig(); mapper.SetJointMap(testis.jointMap);  mapper.UpdateJointMap(); });
+        resetting.Find("LoadButton").GetComponent<Button>().onClick.AddListener(delegate { testis.LoadConfig(); mapper.SetJointMap(testis.jointMap); mapper.UpdateJointMap(); });
         resetting.Find("PlayButton").GetComponent<Button>().onClick.AddListener(delegate { testis.PlayExampleClip(); });
 
         toggle.onValueChanged.AddListener(delegate { testis.ToggleAvatar2ISRetargeting(toggle); });
@@ -87,27 +122,6 @@ public class AutoSetupInterface : MonoBehaviour
 
 
         SkinSlider.onValueChanged.AddListener(delegate { this.GetComponent<CharacterMeshRendererController>().alpha = SkinSlider.value; });
-
-
-        ReMap.onClick.AddListener(delegate { mapper.AutoRemap(); });
-
-
-        ClearMap.onClick.AddListener(delegate { mapper.ClearMap(); });
-
-        ApplyRetareting.onClick.AddListener(delegate { testis.ResetBoneMap2(); });
-
-        var cam = GameObject.Find("Main Camera");
-        if(cam != null)
-        {
-            var flyCam = cam.GetComponent<FlyCam>();
-            if(flyCam != null)
-            {
-                // target Pelvis for more central fixation of the Avatar
-                flyCam.target = root.GetChild(0);
-            }
-        }
-
-
     }
 
     private void RightHandPrep(TestIS testis, Quaternion topdownrotation)
