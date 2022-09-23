@@ -40,6 +40,7 @@ public class AutoSetupInterface : MonoBehaviour
 
         ApplyRetareting.onClick.AddListener(delegate { try
             {
+                testis.AutoLoadConfigFile = false;
                 testis.ResetBoneMap2();
                 GameObject.Find("ConfirmMapping").GetComponent<Button>().interactable = true;
             }

@@ -23,7 +23,8 @@ public class WorldUI : MonoBehaviour
     // Update is called once per frame
     void Update()
     {
-        this.transform.position = Target.position;
+        if(Target != null)
+            this.transform.position = Target.position;
         this.transform.LookAt(GameObject.FindObjectOfType<Camera>().transform);
         this.transform.Rotate(new Vector3(0,180,0));
         //this.transform.rotation = Target.rotation;
