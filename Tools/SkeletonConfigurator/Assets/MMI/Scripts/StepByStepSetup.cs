@@ -5,6 +5,7 @@ using UnityEngine;
 using UnityEngine.UI;
 using GLTFast;
 using MMIUnity;
+using RuntimeGizmos;
 using SimpleFileBrowser;
 
 public class StepByStepSetup : MonoBehaviour
@@ -13,9 +14,11 @@ public class StepByStepSetup : MonoBehaviour
     {
         RootSelect,
         RotationAdjust,
-        SelectPath,
+        PositionAdjust,
+        ScaleAdjust,
         JointMap,
-        IsSetup
+        IsSetup,
+        SelectPath
     }
 
     #region PublicVars
@@ -32,33 +35,59 @@ public class StepByStepSetup : MonoBehaviour
     private FlyCam _flycam;
     private Button _back;
     private State _state;
+    private Dictionary<State, GameObject> _dic;
+    private TransformGizmo _transGiz;
+    private Vector3 _oldFlyCamPos;
+    private Quaternion _oldFlyCamRot;
+    private string _filepath;
     #endregion
 
-    #region SetupFirstStep
+    #region SetupSelect
     private Dropdown _rootDrop;
     private Dropdown _pelvDrop;
     private Button _ConfirmSetup;
     private GameObject _ChooseRot;
     #endregion
 
-    #region SetupSecondStep
+    #region SetupRotate
     private GameObject _ChangeRot;
-
     private Button _BigTurnLeft;
     private Button _BigTurnRight;
     private Button _ConfirmRotation;
-    private Button _Reset;
-
-    private bool _canTurnSmall;
+    private Button _ResetRot;
     private int _direction;
     private Quaternion _oldRot;
+    #endregion
 
+    #region SetupPos
+    private GameObject _ChangePos;
+    private Button _BigMoveLeft;
+    private Button _BigMoveRight;
+    private Button _BigMoveUp;
+    private Button _BigMoveDown;
+    private Button _ConfirmPos;
+    private Button _ResetPos;
 
+    private Vector2 _posDir;
+    private Vector3 _oldPos;
+
+    private List<GameObject> _planes;
+    #endregion
+
+    #region SetupScale
+    private GameObject _ChangeScale;
+    private Button _BigScaleUp;
+    private Button _BigScaleDown;
+    private Button _ConfirmScale;
+    private Button _ResetScale;
+    private int _scale;
+    private Vector3 _oldScale;
     #endregion
 
     #region MosFile
     private GameObject _MosimSelector;
     #endregion
+
     #region SetupJointMapping
     private GameObject _SetUpJoints;
     private Button _ConfirmMapping;
@@ -69,6 +98,8 @@ public class StepByStepSetup : MonoBehaviour
     #endregion
     private void Start()
     {
+        _dic = new Dictionary<State, GameObject>();
+
         this._state = State.RootSelect;
         _back = GameObject.Find("Back Button").GetComponent<Button>();
         _back.onClick.AddListener(delegate { goBack(_state -1); });
@@ -80,18 +111,35 @@ public class StepByStepSetup : MonoBehaviour
         _ConfirmSetup = GameObject.Find("ConfirmSetup").GetComponent<Button>();
 
         _ChooseRot = GameObject.Find("Choose Root + Pelvis");
+        _dic.Add(State.RootSelect, _ChooseRot);
         _ChooseRot.SetActive(false);
         
         _flycam = GameObject.FindObjectOfType<FlyCam>();
+        _transGiz = _flycam.gameObject.GetComponent<TransformGizmo>();
+        _transGiz.enabled = false;
         _flycam.gameObject.GetComponent<FlyCamController>().enabled = false;
+        _oldFlyCamPos = _flycam.gameObject.transform.position;
+        _oldFlyCamRot = _flycam.gameObject.transform.rotation;
         
         _ChangeRot = GameObject.Find("Orient Avatar");
+        _dic.Add(State.RotationAdjust, _ChangeRot);
         _ChangeRot.SetActive(false);
 
-        _MosimSelector = GameObject.Find("Configuration-File");        
+        _ChangePos = GameObject.Find("Position Avatar");
+        _dic.Add(State.PositionAdjust, _ChangePos);
+        _ChangePos.SetActive(false);
+        _planes = new List<GameObject>();
+
+        _ChangeScale = GameObject.Find("Scale Avatar");
+        _dic.Add(State.ScaleAdjust, _ChangeScale);
+        _ChangeScale.SetActive(false);
+
+        _MosimSelector = GameObject.Find("Configuration-File");
+        _dic.Add(State.SelectPath, _MosimSelector);
         _MosimSelector.transform.Find("Buttons/New Mos File").GetComponent<Button>().onClick.AddListener(delegate { StartCoroutine(CreateNewMos()); });
         _MosimSelector.transform.Find("Buttons/Select Mos File").GetComponent<Button>().onClick.AddListener(delegate { StartCoroutine(SelectMos()); });
-        _MosimSelector.transform.Find("Buttons/Default").GetComponent<Button>().onClick.AddListener(delegate { ConfirmMOSIMFile(Application.dataPath + "/Samples/Configs/avatar.mos_initial"); });
+        _filepath = Application.dataPath + "/Samples/Configs/avatar.mos_initial";
+        _MosimSelector.transform.Find("Buttons/Default").GetComponent<Button>().onClick.AddListener(delegate { ConfirmMOSIMFile(_filepath); });
         _MosimSelector.SetActive(false);
 
 
@@ -99,16 +147,18 @@ public class StepByStepSetup : MonoBehaviour
         _ConfirmMapping.interactable = false;
         _ConfirmMapping.onClick.AddListener(delegate { ConfirmRetargeting(); });
         _SetUpJoints = GameObject.Find("Setup Skeleton");
+        _dic.Add(State.JointMap, _SetUpJoints);
         _SetUpJoints.SetActive(false);
 
         _SetuppedConfigurator = GameObject.Find("Control-after-import");
+        _dic.Add(State.IsSetup, _SetuppedConfigurator);
         _SetuppedConfigurator.SetActive(false);
 
     }
 
     private void Update()
     {
-        if (_canTurnSmall)
+        if (_state == State.RotationAdjust)
         {
             // Left Key Rotate Left, Right Key Rotate Right.
             if (Input.GetKeyUp(KeyCode.LeftArrow))
@@ -126,6 +176,61 @@ public class StepByStepSetup : MonoBehaviour
             if (Input.GetKeyDown(KeyCode.RightArrow))
                 _direction = 1;
         }
+
+        if (_state == State.ScaleAdjust)
+        {
+            // Up and down to Scale up or down.
+            if (Input.GetKeyUp(KeyCode.UpArrow))
+                _scale = 0;
+            if (Input.GetKeyUp(KeyCode.DownArrow))
+                _scale = 0;
+
+            if (_scale < 0)
+                ScaleRoot();
+            if (_scale > 0)
+                ScaleRoot();
+
+            if (Input.GetKeyDown(KeyCode.DownArrow))
+                _scale = -1;
+            if (Input.GetKeyDown(KeyCode.UpArrow))
+                _scale = 1;
+        }
+
+        if (_state == State.PositionAdjust)
+        {
+            // Left Right up to move Position
+            if (Input.GetKeyUp(KeyCode.LeftArrow))
+                _posDir = new Vector2(0,0);
+            if (Input.GetKeyUp(KeyCode.RightArrow))
+                _posDir = new Vector2(0, 0);
+            if (Input.GetKeyUp(KeyCode.UpArrow))
+                _posDir = new Vector2(0, 0);
+            if (Input.GetKeyUp(KeyCode.DownArrow))
+                _posDir = new Vector2(0, 0);
+
+            if (_posDir != new Vector2(0, 0))
+                MoveRoot();
+
+            if (Input.GetKeyDown(KeyCode.LeftArrow))
+                _posDir.x = 1;
+            if (Input.GetKeyDown(KeyCode.RightArrow))
+                _posDir.x = -1;
+            if (Input.GetKeyDown(KeyCode.UpArrow))
+                _posDir.y = 1;
+            if (Input.GetKeyDown(KeyCode.DownArrow))
+                _posDir.y = -1;
+
+        }
+    }
+
+    private void ScaleRoot()
+    {
+        _root.localScale += new Vector3(_scale, _scale, _scale)* 0.1f * Time.deltaTime;
+    }
+
+    private void MoveRoot()
+    {
+        _root.position += new Vector3(_posDir.x, _posDir.y, 0) * 0.1f * Time.deltaTime;
     }
     public void ConfirmSelection(List<Transform>Tlist)
     {
@@ -140,6 +245,7 @@ public class StepByStepSetup : MonoBehaviour
             totest = totest.parent;
             totest.position = Vector3.zero;
         }
+        _root.position = Vector3.zero;
 
 
         //Enable second Step 
@@ -154,29 +260,10 @@ public class StepByStepSetup : MonoBehaviour
 
         //Deactivate flycam controls until Rotation is Confirmed.
         _flycam.target = _pelvis;
-    }
 
-    private void SetupRotator()
-    {
-        _BigTurnLeft = _ChangeRot.transform.Find("RotateLeft").GetComponent<Button>();
-        _BigTurnRight = _ChangeRot.transform.Find("RotateRight").GetComponent<Button>();
-        _ConfirmRotation = _ChangeRot.transform.Find("Confirm Orientation").GetComponent<Button>();
-        _Reset = _ChangeRot.transform.Find("Reset Orientation").GetComponent<Button>();
-        _canTurnSmall = true;
-
-        _BigTurnLeft.onClick.RemoveAllListeners();
-        _BigTurnRight.onClick.RemoveAllListeners();
-        _ConfirmRotation.onClick.RemoveAllListeners();
-        _Reset.onClick.RemoveAllListeners();
-
-        _BigTurnLeft.onClick.AddListener(delegate { RotateY(90f); });
-        _BigTurnRight.onClick.AddListener(delegate { RotateY(-90f); });
-        _ConfirmRotation.onClick.AddListener(delegate { ConfirmRotation(); });
-        _Reset.onClick.AddListener(delegate { _pelvis.rotation = _oldRot; });
-
-        _oldRot = _pelvis.rotation;
-
-
+        _oldRot = _root.rotation;
+        _oldPos = _root.position;
+        _oldScale = _root.localScale;
     }
 
     public void ConfirmRotation()
@@ -186,25 +273,41 @@ public class StepByStepSetup : MonoBehaviour
 
         //Deactivate UI of Rotator
         _ChangeRot.SetActive(false);
-        _canTurnSmall = false;
 
-        //Activate UI of MosimSelector
-        _MosimSelector.SetActive(true);
+        // Activate ChangePos
+        _ChangePos.SetActive(true);
+        _state = State.PositionAdjust;
+        SetUpPositioner();
 
     }
 
-    private void ConfirmMOSIMFile(string filepath)
+    public void ConfirmPos()
     {
-        //Deactivate UI of the step
-        _MosimSelector.SetActive(false);
+        _ChangePos.SetActive(false);
 
-        //Activate the UI for the Setup of the joints.
-        _SetUpJoints.SetActive(true);
+        _ChangeScale.SetActive(true);
+        _state = State.ScaleAdjust;
+        SetupScaler();
+    }
+
+    private void ConfirmScale()
+    {
+        foreach (GameObject p in _planes)
+            Destroy(p);
+        _planes.Clear();
+
+        _ChangeScale.SetActive(false);
+
+        _flycam.GetComponent<FlyCamController>().ClearPlanes();
+        _flycam.GetComponent<FlyCamController>().ResetToNonOrtho();
         _flycam.gameObject.GetComponent<FlyCamController>().enabled = true;
+
+        //Activate UI of MosimSelector
+        _SetUpJoints.SetActive(true);
         _state = State.JointMap;
 
-        //Confirm the Avatar is placed correctly and the Scripts can now be placed on it.
-        AddConfiguratorScripts(filepath);
+        AddConfiguratorScripts(_filepath);
+
     }
 
     public void ConfirmRetargeting()
@@ -215,11 +318,137 @@ public class StepByStepSetup : MonoBehaviour
 
         //Activate interaction UI
         _SetuppedConfigurator.SetActive(true);
+        _transGiz.enabled = true;
         _state = State.IsSetup;
 
         //AutoSetupInterface Initializemethod for after successful mapping.#
         GameObject AvatarParent = GameObject.Find("Avatar");
         AvatarParent.GetComponent<AutoSetupInterface>().AfterMapping();
+    }
+
+    private void ConfirmMOSIMFile(string filepath)
+    {
+        //Deactivate UI of the step
+        _MosimSelector.SetActive(false);
+
+        _SetuppedConfigurator.SetActive(true);
+        _state = State.IsSetup;
+        _transGiz.enabled = true;
+
+        GameObject.Find("Avatar").GetComponent<TestIS>().ConfigurationFilePath = filepath;
+
+        GameObject.Find("Avatar").GetComponent<TestIS>().SaveConfig();
+    }
+
+    public void ChooseConfigFileLoc()
+    {
+        _MosimSelector.SetActive(true);
+        _SetuppedConfigurator.SetActive(false);
+
+        _transGiz.enabled = false;
+    }
+
+    private void SetupRotator()
+    {
+        _BigTurnLeft = _ChangeRot.transform.Find("RotateLeft").GetComponent<Button>();
+        _BigTurnRight = _ChangeRot.transform.Find("RotateRight").GetComponent<Button>();
+        _ConfirmRotation = _ChangeRot.transform.Find("Buttons/Confirm Orientation").GetComponent<Button>();
+        _ResetRot = _ChangeRot.transform.Find("Buttons/Reset Orientation").GetComponent<Button>();
+
+        _BigTurnLeft.onClick.RemoveAllListeners();
+        _BigTurnRight.onClick.RemoveAllListeners();
+        _ConfirmRotation.onClick.RemoveAllListeners();
+        _ResetRot.onClick.RemoveAllListeners();
+
+        _BigTurnLeft.onClick.AddListener(delegate { RotateY(90f); });
+        _BigTurnRight.onClick.AddListener(delegate { RotateY(-90f); });
+        _ConfirmRotation.onClick.AddListener(delegate { ConfirmRotation(); });
+        _ResetRot.onClick.AddListener(delegate { _root.rotation = _oldRot; });
+    }
+
+    private void SetUpPositioner()
+    {
+        foreach(GameObject p in _planes)
+        {
+            Destroy(p);
+        }
+        _planes.Clear();
+
+        _BigMoveLeft = _ChangePos.transform.Find("Move Buttons/Move left").GetComponent<Button>();
+        _BigMoveRight = _ChangePos.transform.Find("Move Buttons/Move right").GetComponent<Button>();
+        _BigMoveUp = _ChangePos.transform.Find("Move Buttons/Up Down Buttons/MoveUp").GetComponent<Button>();
+        _BigMoveDown = _ChangePos.transform.Find("Move Buttons/Up Down Buttons/MoveDown").GetComponent<Button>();
+        _ConfirmPos = _ChangePos.transform.Find("Buttons/Confirm Position").GetComponent<Button>();
+        _ResetPos = _ChangePos.transform.Find("Buttons/Reset Position").GetComponent<Button>();
+
+        _BigTurnLeft.onClick.RemoveAllListeners();
+        _BigTurnRight.onClick.RemoveAllListeners();
+        _BigMoveUp.onClick.RemoveAllListeners();
+        _BigMoveDown.onClick.RemoveAllListeners();
+        _ConfirmPos.onClick.RemoveAllListeners();
+        _ResetPos.onClick.RemoveAllListeners();
+
+        _BigMoveLeft.onClick.AddListener(delegate { _root.position += new Vector3(.1f, 0, 0); });
+        _BigMoveRight.onClick.AddListener(delegate { _root.position += new Vector3(-.1f, 0, 0); });
+        _BigMoveDown.onClick.AddListener(delegate { _root.position += new Vector3(0, -.1f, 0); });
+        _BigMoveUp.onClick.AddListener(delegate { _root.position += new Vector3(0, .1f, 0); });
+        _ConfirmPos.onClick.AddListener(delegate { ConfirmPos(); });
+        _ResetPos.onClick.AddListener(delegate { _root.position = _oldPos; });
+
+        // Add Planes and change to projection
+        var plane1 = Instantiate(Resources.Load("Plane") as GameObject, Vector3.zero, Quaternion.Euler(90,0,0));
+        var plane2 = Instantiate(Resources.Load("Plane") as GameObject, Vector3.zero, Quaternion.Euler(90,0,0));
+        plane2.transform.position -= new Vector3(0,plane2.transform.localScale.x *5,-.001f);
+        var mat = plane2.GetComponent<MeshRenderer>().material;
+        mat.color = new Color(0, 0, 0);
+        mat.SetFloat("_Metallic", 1f);
+        mat.SetFloat("_Glossiness", 0f);
+        _planes.Add(plane1);
+        _planes.Add(plane2);
+
+        var zerorotation = Quaternion.Euler(Vector3.zero);
+
+        _flycam.gameObject.GetComponent<FlyCamController>().ChangeProjection(zerorotation, _planes);
+        _flycam.gameObject.GetComponent<Camera>().orthographicSize = 1.5f;
+        if (_flycam.transform.childCount > 0)
+            _flycam.transform.GetChild(0).GetComponent<Camera>().orthographicSize = 1.5f;
+        _flycam.gameObject.GetComponent<FlyCamController>().enabled = true;
+
+    }
+
+    private void SetupScaler()
+    {
+        foreach(GameObject p in _planes)
+        {
+            Destroy(p);
+        }
+        _planes.Clear();
+        _BigScaleUp = _ChangeScale.transform.Find("Scale Buttons/ScaleUp").GetComponent<Button>();
+        _BigScaleDown = _ChangeScale.transform.Find("Scale Buttons/ScaleDown").GetComponent<Button>();
+        _ConfirmScale = _ChangeScale.transform.Find("Buttons/Confirm Scale").GetComponent<Button>();
+        _ResetScale = _ChangeScale.transform.Find("Buttons/Reset Scale").GetComponent<Button>();
+
+        _BigScaleUp.onClick.RemoveAllListeners();
+        _BigScaleDown.onClick.RemoveAllListeners();
+        _ConfirmScale.onClick.RemoveAllListeners();
+        _ResetScale.onClick.RemoveAllListeners();
+
+        _BigScaleUp.onClick.AddListener(delegate { _root.localScale += new Vector3(.05f, .05f, .05f); });
+        _BigScaleDown.onClick.AddListener(delegate { _root.localScale -= new Vector3(.05f, .05f, .05f); });
+        _ConfirmScale.onClick.AddListener(delegate { ConfirmScale(); });
+        _ResetScale.onClick.AddListener(delegate { _root.localScale = _oldScale; });
+
+        var plane1 = Instantiate(Resources.Load("Plane") as GameObject, _root.position, Quaternion.Euler(90, 0, 0));
+        _planes.Add(plane1);
+
+        var zerorotation = Quaternion.Euler(Vector3.zero);
+
+        _flycam.gameObject.GetComponent<FlyCamController>().ChangeProjection(zerorotation, _planes);
+        _flycam.gameObject.GetComponent<Camera>().orthographicSize = 1.5f;
+        if(_flycam.transform.childCount > 0)
+            _flycam.transform.GetChild(0).GetComponent<Camera>().orthographicSize = 1.5f;
+        _flycam.gameObject.GetComponent<FlyCamController>().enabled = true;
+
     }
 
     private void PlaceHandUI()
@@ -267,7 +496,7 @@ public class StepByStepSetup : MonoBehaviour
 
     public void RotateY(float degree)
     {
-        _pelvis.Rotate(new Vector3(0, degree, 0), Space.World);
+        _root.Rotate(new Vector3(0, degree, 0), Space.World);
     }
 
 
@@ -333,23 +562,73 @@ public class StepByStepSetup : MonoBehaviour
         testy.ConfigurationFilePath = filepath;
 
         //Setup Mapper
-        mappy.Root = _pelvis;
+        mappy.Root = _root;
 
         //Setup AutoSetuper
         setupy.root = _root;
 
 
     }
-    public void ResetUI()
+    private void ResetSteps(State s)
     {
+        foreach (GameObject p in _planes)
+            Destroy(p);
+        _planes.Clear();
+        Slider Skinslider = null;
+        Slider Boneslider = null;
+        try
+        {
+            Skinslider = GameObject.Find("SkinMeshOpacity").transform.Find("Slider").GetComponent<Slider>();
+            Boneslider = GameObject.Find("BoneMeshOpacity").transform.Find("Slider").GetComponent<Slider>();
+        }
+        catch
+        {
+
+        }
+        if (Skinslider != null)
+            Skinslider.value = 1;
+        if (Boneslider != null)
+            Boneslider.value = 1;
+        _ChangePos.SetActive(false);
+        _ChangeScale.SetActive(false);
         _ChangeRot.SetActive(false);
-        _ChooseRot.SetActive(false);
         _SetUpJoints.SetActive(false);
         _SetuppedConfigurator.SetActive(false);
+        _ChooseRot.SetActive(false);
+        _MosimSelector.SetActive(false);
+
+        _transGiz.enabled = false;
+
 
         _ConfirmMapping.interactable = false;
 
-        _flycam.gameObject.GetComponent<FlyCamController>().enabled = false;
+        if(s < State.JointMap && _state >= State.JointMap)
+        {
+            var avatar = GameObject.Find("Avatar");
+            var skelvis = avatar.GetComponent<TestIS>().skelVis;
+            if(skelvis != null)
+                skelvis.root.Destroy();                
+        }
+
+        if (s < State.IsSetup && _state >= State.IsSetup)
+        {
+            _flycam.GetComponent<FlyCamController>().DeletePlanes();
+            _flycam.GetComponent<FlyCamController>().ResetToNonOrtho();
+            GameObject.Find("Avatar").GetComponent<CharacterMeshRendererController>().alpha = 1f;
+        }
+        if (s <= State.RotationAdjust)
+            _flycam.gameObject.GetComponent<FlyCamController>().enabled = false;
+        _flycam.gameObject.GetComponent<Camera>().orthographic = false;
+        if (s == State.RootSelect)
+        {
+            _flycam.DefaultCamera();
+        }
+    }
+
+    public void ResetToStart()
+    {
+        SafeStepBack(State.RootSelect);
+        _state = State.RootSelect;       
     }
 
     /// <summary>
@@ -359,61 +638,77 @@ public class StepByStepSetup : MonoBehaviour
     /// <param name="s">Target State</param>
     private void goBack(State s)
     {
+        GameObject a;
         //TODO: When coming from a state further than RotationAdjust, we need to delete the WorldCanvas Objects and also visual bones which were created and the scripts.
         switch (s)
         {
             case State.RootSelect:
-                SafeStepBack();
+                SafeStepBack(s);
                 _Background.gameObject.SetActive(true);
                 _back.interactable= false;
-                _state = s;
-                _ChangeRot.SetActive(false);
-                _SetUpJoints.SetActive(false);
-                _SetuppedConfigurator.SetActive(false);
-                _ChooseRot.SetActive(true);
-                _MosimSelector.SetActive(false);
-                _back.interactable = false;
+                _state = s;                
+                _dic.TryGetValue(s, out a);
+                if (a != null)
+                    a.SetActive(true);
                 break;
             case State.RotationAdjust:
-                SafeStepBack();
+                SafeStepBack(s);
                 _state = s;
-                _ChangeRot.SetActive(true);
-                _SetUpJoints.SetActive(false);
-                _SetuppedConfigurator.SetActive(false);
-                _ChooseRot.SetActive(false);
-                _MosimSelector.SetActive(false);
+                _dic.TryGetValue(s, out a);
+                if (a != null)
+                    a.SetActive(true);
+                SetupRotator();
+                break;
+            case State.PositionAdjust:
+                SafeStepBack(s);
+                _state = s;
+                _dic.TryGetValue(s, out a);
+                if (a != null)
+                    a.SetActive(true);
+                SetUpPositioner();
+                break;
+            case State.ScaleAdjust:
+                SafeStepBack(s);
+                _state = s;
+                _dic.TryGetValue(s, out a);
+                if (a != null)
+                    a.SetActive(true);
+                SetupScaler();
                 break;
             case State.SelectPath:
-                SafeStepBack();
+                SafeStepBack(s);
                 _state = s;
-                _ChangeRot.SetActive(false);
-                _SetUpJoints.SetActive(false);
-                _SetuppedConfigurator.SetActive(false);
-                _ChooseRot.SetActive(false);
-                _MosimSelector.SetActive(true);
+                _dic.TryGetValue(s, out a);
+                if (a != null)
+                    a.SetActive(true);
                 break;
             case State.JointMap:
-                SafeStepBack();
+                SafeStepBack(s);
                 _state = s;
-                _ChangeRot.SetActive(false);
-                _SetUpJoints.SetActive(true);
-                _SetuppedConfigurator.SetActive(false);
-                _ChooseRot.SetActive(false);
-                _MosimSelector.SetActive(false);
+                _dic.TryGetValue(s, out a);
+                if (a != null)
+                    a.SetActive(true);
                 break;
             case State.IsSetup:
-                SafeStepBack();
+                SafeStepBack(s);
                 _state = s;
-                _ChangeRot.SetActive(false);
-                _SetUpJoints.SetActive(false);
-                _SetuppedConfigurator.SetActive(true);
-                _ChooseRot.SetActive(false);
-                _MosimSelector.SetActive(false);
+                _transGiz.enabled = true;
+                _dic.TryGetValue(s, out a);
+                if (a != null)
+                    a.SetActive(true);
                 break;
             default:
                 break;
         }
 
+    }
+
+    public bool CanExitOrtho()
+    {
+        if (_state >= State.JointMap)
+            return true;
+        else
+            return false;
     }
 
     IEnumerator CreateNewMos()
@@ -443,15 +738,22 @@ public class StepByStepSetup : MonoBehaviour
         }
     }
 
-    private void SafeStepBack()
+    private void SafeStepBack(State s)
     {
-        RevertInfluenceOfScripts();
+        if (_state <= State.RotationAdjust +1)
+        {
+            _flycam.gameObject.GetComponent<FlyCamController>().ClearPlanes();
+            _flycam.gameObject.GetComponent<FlyCamController>().ResetToNonOrtho();
+            _flycam.gameObject.GetComponent<FlyCamController>().enabled = false;
+        }
+        RevertInfluenceOfScripts(s);
         DeleteWorldCanvas();
+        ResetSteps(s);
     }
 
-    private void RevertInfluenceOfScripts()
+    private void RevertInfluenceOfScripts(State s)
     {
-        if(_state >= State.JointMap)
+        if(_state >= State.JointMap && s < State.JointMap)
         {
             //Destroy all scripts which were attached to the GameObject.
             var avatar = GameObject.Find("Avatar");
@@ -463,7 +765,18 @@ public class StepByStepSetup : MonoBehaviour
                 }
             }
             ShredAvatar(avatar.transform);
-            
+
+            ShredJointController();
+
+            _SetUpJoints.SetActive(true);
+            Transform obj = _SetUpJoints.transform.Find("Logic UI/JointMap/Viewport/Content");
+            for (int i = 0; i < obj.childCount; i++)
+            {
+                Destroy(obj.GetChild(i).gameObject);
+            }
+            _SetUpJoints.SetActive(false);
+
+
         }
     }
 
@@ -482,9 +795,24 @@ public class StepByStepSetup : MonoBehaviour
         }
     }
 
+    private void ShredJointController(Transform toshred = null)
+    {
+        if(toshred == null)
+            toshred = GameObject.Find("Avatar").transform;
+        var brrrt = toshred.gameObject.GetComponent<JointController>();
+        if (brrrt != null)
+            Destroy(brrrt);
+
+        for(int i = 0; i<toshred.childCount; i++)
+        {
+                ShredJointController(toshred.GetChild(i));
+            
+        }
+    }
+
     private void DeleteWorldCanvas()
     {
-        if (_state <= State.SelectPath)
+        if (_state <= State.PositionAdjust)
         {
             var obj = GameObject.FindObjectsOfType<WorldUI>();
             foreach (var ob in obj)

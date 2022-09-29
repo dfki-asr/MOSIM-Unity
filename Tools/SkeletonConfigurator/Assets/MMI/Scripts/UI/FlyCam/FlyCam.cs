@@ -51,6 +51,11 @@ public class FlyCam : MonoBehaviour
         translation = Vector3.zero;
     }
 
+    public void DefaultCamera()
+    {
+        LookAtTargetFrom(Vector3.forward, Vector3.up, 5);
+    }
+
     /// <summary>Look at target from a point</summary>
     /// <param name="targetLocalDirection">target direction from camera position in target frame</param>
     /// <param name="targetLocalCameraUp">camera up direction in target frame</param>

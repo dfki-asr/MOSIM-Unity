@@ -103,7 +103,7 @@ public class BVHFileLoaderUI : MonoBehaviour
                     b.onClick.AddListener(delegate { tis.LoadConfig(); });
                 } else if(b.name == "PlayButton")
                 {
-                    b.onClick.AddListener(delegate { tis.PlayExampleClip(); });
+                    b.onClick.AddListener(delegate { tis.LoadAndPlayExampleClip(); });
                 }
             }
             var toggle = GameObject.Find("SwitchRetargeting").GetComponent<Toggle>();

@@ -116,11 +116,10 @@
       }
     },
     "de.dfki.mmiunity-core": {
-      "version": "https://github.com/dfki-asr/MMIUnity-Core.git",
+      "version": "file:C:/Users/nibr02-admin/Desktop/MOSIM/Repos/Packages/MMIUnity-Core",
       "depth": 0,
-      "source": "git",
-      "dependencies": {},
-      "hash": "f6e5a489a25fa4a2106753a9a7ee56c26fdcb013"
+      "source": "local",
+      "dependencies": {}
     },
     "com.unity.modules.ai": {
       "version": "1.0.0",

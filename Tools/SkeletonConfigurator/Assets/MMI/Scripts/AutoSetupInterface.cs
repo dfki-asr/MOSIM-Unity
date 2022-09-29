@@ -89,8 +89,9 @@ public class AutoSetupInterface : MonoBehaviour
         resetting.Find("RealignButton").GetComponent<Button>().onClick.RemoveAllListeners();
         resetting.Find("ResetPose").GetComponent<Button>().onClick.RemoveAllListeners();
         resetting.Find("SaveButton").GetComponent<Button>().onClick.RemoveAllListeners();
-        resetting.Find("LoadButton").GetComponent<Button>().onClick.RemoveAllListeners();
-        resetting.Find("PlayButton").GetComponent<Button>().onClick.RemoveAllListeners();
+        //resetting.Find("LoadButton").GetComponent<Button>().onClick.RemoveAllListeners();
+        resetting.Find("PlayToggle").GetComponent<Toggle>().onValueChanged.RemoveAllListeners();
+        resetting.Find("ApplySkeleton").GetComponent<Button>().onClick.RemoveAllListeners();
 
         var toggle = GameObject.Find("SwitchRetargeting").GetComponent<Toggle>();
         toggle.onValueChanged.RemoveAllListeners();
@@ -107,16 +108,27 @@ public class AutoSetupInterface : MonoBehaviour
         // Add listeners.
         changeView.Find("FrontViewButton").GetComponent<Button>().onClick.AddListener(delegate { GameObject.FindObjectOfType<FlyCamController>().ChangeProjection(frontrotation, planes); });
         changeView.Find("SideViewButton").GetComponent<Button>().onClick.AddListener(delegate { GameObject.FindObjectOfType<FlyCamController>().ChangeProjection(sideRotation, planes); });
-        changeView.Find("HandViewButton").GetComponent<Button>().onClick.AddListener(delegate { RightHandPrep(testis, topdownrotation); });
+        changeView.Find("HandViewButton").GetComponent<Button>().onClick.AddListener(delegate { RightHandPrep(topdownrotation); });
 
 
         resetting.Find("RealignButton").GetComponent<Button>().onClick.AddListener(delegate { testis.RealignSkeletons(); });
         resetting.Find("ResetPose").GetComponent<Button>().onClick.AddListener(delegate { testis.ResetBasePosture(); });
-        resetting.Find("SaveButton").GetComponent<Button>().onClick.AddListener(delegate { testis.SaveConfig(); });
-        resetting.Find("LoadButton").GetComponent<Button>().onClick.AddListener(delegate { testis.LoadConfig(); mapper.SetJointMap(testis.jointMap); mapper.UpdateJointMap(); });
-        resetting.Find("PlayButton").GetComponent<Button>().onClick.AddListener(delegate { testis.PlayExampleClip(); });
-
-        toggle.onValueChanged.AddListener(delegate { testis.ToggleAvatar2ISRetargeting(toggle); });
+        resetting.Find("SaveButton").GetComponent<Button>().onClick.AddListener(delegate { testis.InitiateSafe(); });
+        //resetting.Find("LoadButton").GetComponent<Button>().onClick.AddListener(delegate { testis.LoadConfig(); mapper.SetJointMap(testis.jointMap); mapper.UpdateJointMap(); });
+        resetting.Find("PlayToggle").GetComponent<Toggle>().onValueChanged.AddListener(delegate { testis.PlayPauseExampleClip(); });
+        resetting.Find("ApplySkeleton").GetComponent<Button>().onClick.AddListener(delegate {
+            try
+            {
+                testis.AutoLoadConfigFile = false;
+                testis.ResetBoneMap2();
+            }
+            catch (Exception e)
+            {
+                Debug.Log($"The retargeting could not be applied with Error:");
+                Debug.LogException(e);
+            }
+        });
+        toggle.onValueChanged.AddListener(delegate { testis.ToggleAvatar2ISRetargeting(toggle.isOn); });
 
 
         BoneSlider.onValueChanged.AddListener(delegate { this.GetComponent<BoneVisualization>().SetAlpha(BoneSlider.value); });
@@ -125,28 +137,23 @@ public class AutoSetupInterface : MonoBehaviour
         SkinSlider.onValueChanged.AddListener(delegate { this.GetComponent<CharacterMeshRendererController>().alpha = SkinSlider.value; });
     }
 
-    private void RightHandPrep(TestIS testis, Quaternion topdownrotation)
+    private void RightHandPrep(Quaternion topdownrotation)
     {
         // Find the right wrist.
-        var map = testis.jointMap;
-        Transform rightWrist = null;
-        foreach (KeyValuePair<MJointType, Transform> pair in map.GetJointMap())
+        Transform rightWrist = GetComponent<JointMapper2>().GetJoint(MJointType.RightWrist);
+        if (rightWrist == null)
         {
-            if (pair.Key == MJointType.RightWrist)
-            {
-                if (pair.Value == null)
-                {
-                    Debug.Log("No Right Wrist assigned");
-                    break;
-                }
-                rightWrist = pair.Value;
-
-            }
+            Debug.Log("No Right Wrist assigned");
         }
         if (rightHandPlane == null && rightWrist != null){
-            rightHandPlane = Instantiate(Resources.Load("Plane") as GameObject, rightWrist.position, topdownrotation);
-            rightHandPlane.transform.localScale *= .1f;
+            rightHandPlane = Instantiate(Resources.Load("Plane") as GameObject, rightWrist.position - new Vector3(0,0.2f,0), Quaternion.identity);
+            rightHandPlane.transform.localScale *= .005f;
+            var mat = rightHandPlane.GetComponent<MeshRenderer>().material;
+            mat.SetColor("_Color", new Color(0f, .2f, 0.36470588235f));
+            mat.mainTextureScale = new Vector2(10,10);
         }
+        List<GameObject> list = new List<GameObject>() { rightHandPlane};
+        flycam.GetComponent<FlyCamController>().ChangeToHandOrtho(rightWrist, list);
     }
 
     private void OnDestroy()

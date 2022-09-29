@@ -88,7 +88,7 @@ public class JointMapper2 : MonoBehaviour
                     int idx = jointList.FindIndex(x => x == mappedJoint);
                     if (idx != -1)
                         jointNameDropdown.value = idx;
-                    //jointNameDropdown.onValueChanged.AddListener(x => jointMap.SetTransform(item.Key, jointList[x]));
+                    jointNameDropdown.onValueChanged.AddListener(delegate { AddToJointMap(itemUI); UpdateJointMap(); }) ;
                 }
             }
         }
@@ -151,7 +151,7 @@ public class JointMapper2 : MonoBehaviour
                         {
                             jc.mirroredJoint = this.jointMap[newType].t;
                             JointController mjc = this.jointMap[newType].t.gameObject.GetComponent<JointController>();
-                            mjc.mirroredJoint = this.transform;
+                            mjc.mirroredJoint = jc.transform;
                         }
                         else
                             jc.mirroredJoint = null;
@@ -178,6 +178,16 @@ public class JointMapper2 : MonoBehaviour
     }
 
     private Dictionary<MJointType, JointMapEntry> jointMap = new Dictionary<MJointType, JointMapEntry>();
+
+    public Transform GetJoint(MJointType type)
+    {
+        JointMapEntry res = null; 
+        this.jointMap.TryGetValue(type, out res);
+        if (res != null)
+            return res.t;
+        else
+            return null;
+    }
 
     public void SetJointMap(JointMap jm)
     {
@@ -282,31 +292,37 @@ public class JointMapper2 : MonoBehaviour
     {
         foreach(var ItemUI in this.itemUIList)
         {
-            var typetext = ItemUI.transform.Find("JointType").GetComponent<Text>();
-            if(typetext == null)
-            {
-                Debug.Log("Error: text not found");
-            }
-            MJointType type = (MJointType)Enum.Parse(typeof(MJointType), typetext.text, true);
-            var dropdown = ItemUI.GetComponentInChildren<JointNameDropDown>();
-            string name = dropdown.options[dropdown.value].text;
-
-            if(this.jointMap.ContainsKey(type) && this.jointMap[type].t.name == null)
-            {
-                this.jointMap.Remove(type);
-            }
-            else if(this.jointMap.ContainsKey(type) && this.jointMap[type].t.name != name)
-            {
-                this.jointMap[type].t = FindRecursive(this.Root, name);
-                this.jointMap[type].manual = true;
-            } else if(!this.jointMap.ContainsKey(type) && name != "null")
-            {
-                this.jointMap[type] = new JointMapEntry(FindRecursive(this.Root, name));
-                this.jointMap[type].manual = true;
-            }
+            AddToJointMap(ItemUI);
         }
         AutoMap();
         UpdateJointMap();
+    }
+
+    private void AddToJointMap(GameObject ItemUI)
+    {
+        var typetext = ItemUI.transform.Find("JointType").GetComponent<Text>();
+        if (typetext == null)
+        {
+            Debug.Log("Error: text not found");
+        }
+        MJointType type = (MJointType)Enum.Parse(typeof(MJointType), typetext.text, true);
+        var dropdown = ItemUI.GetComponentInChildren<JointNameDropDown>();
+        string name = dropdown.options[dropdown.value].text;
+
+        if (this.jointMap.ContainsKey(type) && this.jointMap[type].t.name == null)
+        {
+            this.jointMap.Remove(type);
+        }
+        else if (this.jointMap.ContainsKey(type) && this.jointMap[type].t.name != name)
+        {
+            this.jointMap[type].t = FindRecursive(this.Root, name);
+            this.jointMap[type].manual = true;
+        }
+        else if (!this.jointMap.ContainsKey(type) && name != "null")
+        {
+            this.jointMap[type] = new JointMapEntry(FindRecursive(this.Root, name));
+            this.jointMap[type].manual = true;
+        }
     }
 
     public void ClearMap()

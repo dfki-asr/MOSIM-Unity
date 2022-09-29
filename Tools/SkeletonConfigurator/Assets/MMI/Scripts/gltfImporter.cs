@@ -47,7 +47,7 @@ public class gltfImporter : MonoBehaviour
     private IEnumerator BrowseFile()
     {
         _Background.SetActive(true);
-        setupscript.ResetUI();
+        setupscript.ResetToStart();
         if (gltfLoader.transform.childCount > 0)
         {
             GameObject.Destroy(gltfLoader);
@@ -66,8 +66,6 @@ public class gltfImporter : MonoBehaviour
         // Print whether a file is chosen (FileBrowser.Success)
         // and the path to the selected file (FileBrowser.Result) (null, if FileBrowser.Success is false)
         Debug.Log(FileBrowser.Success + " " + FileBrowser.Result);
-        if (!FileBrowser.Result.Contains(".gltf"))
-            Debug.Log("You must choose a gltf file to procceed.");
 
         if (FileBrowser.Success && FileBrowser.Result.Contains(".gltf"))
         {

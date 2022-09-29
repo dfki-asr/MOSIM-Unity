@@ -10,7 +10,7 @@ GameObject:
   m_Component:
   - component: {fileID: 7152876253221617559}
   - component: {fileID: 6802385772209885481}
-  m_Layer: 0
+  m_Layer: 5
   m_Name: GameObject
   m_TagString: Untagged
   m_Icon: {fileID: 0}
@@ -64,7 +64,7 @@ GameObject:
   - component: {fileID: 5986825983100845806}
   - component: {fileID: 3490045845362362972}
   - component: {fileID: 8511654215525651146}
-  m_Layer: 0
+  m_Layer: 5
   m_Name: Bone
   m_TagString: Untagged
   m_Icon: {fileID: 0}
@@ -144,7 +144,7 @@ GameObject:
   - component: {fileID: 5529088216274688693}
   - component: {fileID: 2132826191735192383}
   - component: {fileID: 8281185296253191208}
-  m_Layer: 0
+  m_Layer: 5
   m_Name: HandBackground
   m_TagString: Untagged
   m_Icon: {fileID: 0}
@@ -258,7 +258,7 @@ GameObject:
   - component: {fileID: 4356478864746793667}
   - component: {fileID: 4866542229483042873}
   - component: {fileID: 4482780998746513478}
-  m_Layer: 0
+  m_Layer: 5
   m_Name: Name
   m_TagString: Untagged
   m_Icon: {fileID: 0}
@@ -336,7 +336,7 @@ GameObject:
   - component: {fileID: 3182727059533866741}
   - component: {fileID: 3810978548340601153}
   - component: {fileID: 3075786826856486396}
-  m_Layer: 0
+  m_Layer: 5
   m_Name: Image
   m_TagString: Untagged
   m_Icon: {fileID: 0}
@@ -411,7 +411,7 @@ GameObject:
   - component: {fileID: 6542228271757594290}
   - component: {fileID: 3233639901651341925}
   - component: {fileID: 3098390823924067706}
-  m_Layer: 0
+  m_Layer: 5
   m_Name: In World Canvas
   m_TagString: Untagged
   m_Icon: {fileID: 0}
@@ -511,7 +511,7 @@ GameObject:
   - component: {fileID: 1595555290774463825}
   - component: {fileID: 5616753664531316831}
   - component: {fileID: 5169349278518338444}
-  m_Layer: 0
+  m_Layer: 5
   m_Name: BoneBackground
   m_TagString: Untagged
   m_Icon: {fileID: 0}
