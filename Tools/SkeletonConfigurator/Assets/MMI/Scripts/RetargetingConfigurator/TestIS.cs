@@ -137,7 +137,7 @@ namespace MMIUnity
             System.IO.File.WriteAllText(filename, s);
 
             string initialP = Serialization.ToJsonString<MAvatarPosture>(this.initialPosture);
-            System.IO.File.WriteAllText(filename , initialP);
+            System.IO.File.WriteAllText(filename.Replace("avatar.mos", "initial.mos") , initialP);
         }
 
         public void InitiateSafe()
