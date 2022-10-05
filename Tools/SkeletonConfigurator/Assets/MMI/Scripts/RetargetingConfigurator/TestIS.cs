@@ -94,7 +94,7 @@ namespace MMIUnity
             zeroPosture = this.skelVis.GetZeroPosture();
             if (posture == null)
             {
-                posture = new MAvatarPostureValues(zeroPosture.AvatarID, zeroPosture.PostureData);
+                posture = new MAvatarPostureValues(zeroPosture.AvatarID, new List<double>(zeroPosture.PostureData));
             }
             posture.PostureData = zeroPosture.PostureData;
             this.AssignPostureValues(zeroPosture);
@@ -103,8 +103,36 @@ namespace MMIUnity
 
         public void ResetBase()
         {
-            posture = new MAvatarPostureValues(originalAvatarID, originalPostureValues);
-            this.AssignPostureValues(posture);
+            MAvatarPosture p = initialPosture;
+            //Map Joint auf JointID
+            foreach(MJoint j in p.Joints)
+            {
+                if (this.bonenameMap != null && this.bonenameMap.ContainsKey(j.ID))
+                {
+                    j.Type = this.bonenameMap[j.ID];
+                }
+                else
+                {
+                    j.Type = MJointType.Undefined;
+                }
+            }
+            p.AvatarID = name;
+            if (this.skelVis != null)
+            {
+                this.skelVis.root.Destroy();
+            }
+
+            this.SetupRetargeting(name, p);
+            if (this.skelVis.root.reference == null)
+            {
+                this.skelVis.root.reference = this.transform;
+            }
+            
+            if (posture == null)
+                posture = new MAvatarPostureValues();
+            posture.AvatarID = p.AvatarID;
+            tryID++;
+            ResetBasePosture();
         }
 
         public void SaveConfig(string filename, Dictionary<string, Quaternion> base_rotations)
@@ -146,9 +174,10 @@ namespace MMIUnity
             //Debug.Log(JsonConvert.SerializeObject(p, Formatting.Indented));
             System.IO.File.WriteAllText(filename, s);
 
-            /*
             string initialP = Serialization.ToJsonString<MAvatarPosture>(this.initialPosture);
-            System.IO.File.WriteAllText(filename , initialP);*/
+
+            System.IO.File.WriteAllText(filename.Replace("avatar.mos", "initial.mos") , initialP);
+
         }
 
         public void InitiateSafe()
@@ -196,7 +225,7 @@ namespace MMIUnity
         public void LoadAndPlayExampleClip()
         {
             Debug.Log("Start playing MOSIM example");
-            string[] lines = System.IO.File.ReadAllLines("Assets/Samples/ExampleClips/example.mos");
+            string[] lines = System.IO.File.ReadAllLines(Application.streamingAssetsPath + "/ExampleClips/example.mos");
             frames.Clear();
             bool motion = false;
             foreach (string s in lines)

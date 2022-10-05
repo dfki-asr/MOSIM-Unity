@@ -144,7 +144,7 @@ public class StepByStepSetup : MonoBehaviour
         _dic.Add(State.SelectPath, _MosimSelector);
         _MosimSelector.transform.Find("Buttons/New Mos File").GetComponent<Button>().onClick.AddListener(delegate { StartCoroutine(CreateNewMos()); });
         _MosimSelector.transform.Find("Buttons/Select Mos File").GetComponent<Button>().onClick.AddListener(delegate { StartCoroutine(SelectMos()); });
-        _filepath = Application.dataPath + "/Samples/Configs/avatar.mos_initial";
+        _filepath = Application.streamingAssetsPath + "/Configs/avatar.mos_initial";
         _MosimSelector.transform.Find("Buttons/Default").GetComponent<Button>().onClick.AddListener(delegate { ConfirmMOSIMFile(_filepath); });
         _MosimSelector.SetActive(false);
 
