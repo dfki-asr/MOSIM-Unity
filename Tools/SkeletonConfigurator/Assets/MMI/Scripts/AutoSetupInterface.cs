@@ -88,9 +88,11 @@ public class AutoSetupInterface : MonoBehaviour
 
         resetting.Find("RealignButton").GetComponent<Button>().onClick.RemoveAllListeners();
         resetting.Find("ResetPose").GetComponent<Button>().onClick.RemoveAllListeners();
+        resetting.Find("ResetBase").GetComponent<Button>().onClick.RemoveAllListeners() ;
         resetting.Find("SaveButton").GetComponent<Button>().onClick.RemoveAllListeners();
         //resetting.Find("LoadButton").GetComponent<Button>().onClick.RemoveAllListeners();
         resetting.Find("PlayToggle").GetComponent<Toggle>().onValueChanged.RemoveAllListeners();
+        resetting.Find("Restart Clip").GetComponent<Button>().onClick.RemoveAllListeners();
         resetting.Find("ApplySkeleton").GetComponent<Button>().onClick.RemoveAllListeners();
 
         var toggle = GameObject.Find("SwitchRetargeting").GetComponent<Toggle>();
@@ -113,14 +115,16 @@ public class AutoSetupInterface : MonoBehaviour
 
         resetting.Find("RealignButton").GetComponent<Button>().onClick.AddListener(delegate { testis.RealignSkeletons(); });
         resetting.Find("ResetPose").GetComponent<Button>().onClick.AddListener(delegate { testis.ResetBasePosture(); });
+        resetting.Find("ResetBase").GetComponent<Button>().onClick.AddListener(delegate { testis.ResetBase(); });
         resetting.Find("SaveButton").GetComponent<Button>().onClick.AddListener(delegate { testis.InitiateSafe(); });
         //resetting.Find("LoadButton").GetComponent<Button>().onClick.AddListener(delegate { testis.LoadConfig(); mapper.SetJointMap(testis.jointMap); mapper.UpdateJointMap(); });
         resetting.Find("PlayToggle").GetComponent<Toggle>().onValueChanged.AddListener(delegate { testis.PlayPauseExampleClip(); });
+        resetting.Find("Restart Clip").GetComponent<Button>().onClick.AddListener(delegate {testis.ResetFrameCount(); });
         resetting.Find("ApplySkeleton").GetComponent<Button>().onClick.AddListener(delegate {
             try
             {
                 testis.AutoLoadConfigFile = false;
-                testis.ResetBoneMap2();
+                testis.ResetBoneMap2(true, false);
             }
             catch (Exception e)
             {

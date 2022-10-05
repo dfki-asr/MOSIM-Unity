@@ -34,6 +34,8 @@ public class StepByStepSetup : MonoBehaviour
     private Image _Background;
     private FlyCam _flycam;
     private Button _back;
+    private Button _HideHands;
+    private List<GameObject> _HandSigns;
     private State _state;
     private Dictionary<State, GameObject> _dic;
     private TransformGizmo _transGiz;
@@ -104,6 +106,10 @@ public class StepByStepSetup : MonoBehaviour
         _back = GameObject.Find("Back Button").GetComponent<Button>();
         _back.onClick.AddListener(delegate { goBack(_state -1); });
         _back.gameObject.SetActive(false);
+        _HideHands = GameObject.Find("Hide Hands").GetComponent<Button>();
+        _HideHands.onClick.AddListener(delegate { DisableOrEnableHandSigns(_HideHands.transform.GetComponentInChildren<Text>()); });
+        _HideHands.gameObject.SetActive(false);
+        _HandSigns = new List<GameObject>();
         _Background = GameObject.Find("Canvas").transform.Find("Background").GetComponent<Image>();
 
         _rootDrop = GameObject.Find("Root Dropdown").GetComponent<Dropdown>();
@@ -249,13 +255,14 @@ public class StepByStepSetup : MonoBehaviour
 
 
         //Enable second Step 
-        _Background.gameObject.SetActive(false);
         _back.gameObject.SetActive(true);
         _back.interactable = true;
         _ChooseRot.SetActive(false);
         _ChangeRot.SetActive(true);
         _state = State.RotationAdjust;
+        SetUpmaterials();
         SetupRotator();
+        _Background.gameObject.SetActive(false);
 
 
         //Deactivate flycam controls until Rotation is Confirmed.
@@ -277,6 +284,7 @@ public class StepByStepSetup : MonoBehaviour
         // Activate ChangePos
         _ChangePos.SetActive(true);
         _state = State.PositionAdjust;
+        _HideHands.gameObject.SetActive(true);
         SetUpPositioner();
 
     }
@@ -458,11 +466,15 @@ public class StepByStepSetup : MonoBehaviour
         GameObject LeftUI = Instantiate (Resources.Load<GameObject>("In World Canvas"));
         LeftUI.transform.GetChild(0).GetComponent<WorldUI>().Target = left;
 
+        _HandSigns.Add(LeftUI);
+
 
         Transform right = FindHand(_pelvis, 0, false);
         GameObject RightUI = Instantiate(Resources.Load<GameObject>("In World Canvas"));
         RightUI.transform.GetChild(0).GetComponent<WorldUI>().Target = right;
         RightUI.transform.GetChild(0).GetComponent<WorldUI>().left = false;
+
+        _HandSigns.Add(RightUI);
     }
 
     private Transform FindHand(Transform origin, int depth = 0,bool left = true)
@@ -569,66 +581,24 @@ public class StepByStepSetup : MonoBehaviour
 
 
     }
-    private void ResetSteps(State s)
-    {
-        foreach (GameObject p in _planes)
-            Destroy(p);
-        _planes.Clear();
-        Slider Skinslider = null;
-        Slider Boneslider = null;
-        try
-        {
-            Skinslider = GameObject.Find("SkinMeshOpacity").transform.Find("Slider").GetComponent<Slider>();
-            Boneslider = GameObject.Find("BoneMeshOpacity").transform.Find("Slider").GetComponent<Slider>();
-        }
-        catch
-        {
-
-        }
-        if (Skinslider != null)
-            Skinslider.value = 1;
-        if (Boneslider != null)
-            Boneslider.value = 1;
-        _ChangePos.SetActive(false);
-        _ChangeScale.SetActive(false);
-        _ChangeRot.SetActive(false);
-        _SetUpJoints.SetActive(false);
-        _SetuppedConfigurator.SetActive(false);
-        _ChooseRot.SetActive(false);
-        _MosimSelector.SetActive(false);
-
-        _transGiz.enabled = false;
-
-
-        _ConfirmMapping.interactable = false;
-
-        if(s < State.JointMap && _state >= State.JointMap)
-        {
-            var avatar = GameObject.Find("Avatar");
-            var skelvis = avatar.GetComponent<TestIS>().skelVis;
-            if(skelvis != null)
-                skelvis.root.Destroy();                
-        }
-
-        if (s < State.IsSetup && _state >= State.IsSetup)
-        {
-            _flycam.GetComponent<FlyCamController>().DeletePlanes();
-            _flycam.GetComponent<FlyCamController>().ResetToNonOrtho();
-            GameObject.Find("Avatar").GetComponent<CharacterMeshRendererController>().alpha = 1f;
-        }
-        if (s <= State.RotationAdjust)
-            _flycam.gameObject.GetComponent<FlyCamController>().enabled = false;
-        _flycam.gameObject.GetComponent<Camera>().orthographic = false;
-        if (s == State.RootSelect)
-        {
-            _flycam.DefaultCamera();
-        }
-    }
+    
 
     public void ResetToStart()
     {
         SafeStepBack(State.RootSelect);
         _state = State.RootSelect;       
+    }
+
+    private void SetUpmaterials()
+    {
+        var mats = GameObject.Find("Avatar").GetComponentsInChildren<SkinnedMeshRenderer>();
+        var o = Resources.Load("Materials/Avatar", typeof (Material)) as Material;
+        foreach (var mat in mats)
+        {
+            mat.material = o;
+        }
+
+        
     }
 
     /// <summary>
@@ -657,6 +627,7 @@ public class StepByStepSetup : MonoBehaviour
                 _dic.TryGetValue(s, out a);
                 if (a != null)
                     a.SetActive(true);
+                SetUpmaterials();
                 SetupRotator();
                 break;
             case State.PositionAdjust:
@@ -751,6 +722,66 @@ public class StepByStepSetup : MonoBehaviour
         ResetSteps(s);
     }
 
+    private void ResetSteps(State s)
+    {
+        foreach (GameObject p in _planes)
+            Destroy(p);
+        _planes.Clear();
+        Slider Skinslider = null;
+        Slider Boneslider = null;
+        try
+        {
+            Skinslider = GameObject.Find("SkinMeshOpacity").transform.Find("Slider").GetComponent<Slider>();
+            Boneslider = GameObject.Find("BoneMeshOpacity").transform.Find("Slider").GetComponent<Slider>();
+        }
+        catch
+        {
+
+        }
+        if (Skinslider != null)
+            Skinslider.value = 1;
+        if (Boneslider != null)
+            Boneslider.value = 1;
+
+        _ChangePos.SetActive(false);
+        _ChangeScale.SetActive(false);
+        _ChangeRot.SetActive(false);
+        _SetUpJoints.SetActive(false);
+        _SetuppedConfigurator.SetActive(false);
+        _ChooseRot.SetActive(false);
+        _MosimSelector.SetActive(false);
+
+        _transGiz.enabled = false;
+
+
+        _ConfirmMapping.interactable = false;
+
+        if (s <= State.JointMap && _state >= State.JointMap)
+        {
+            var avatar = GameObject.Find("Avatar");
+            var skelvis = avatar.GetComponent<TestIS>().skelVis;
+            if (skelvis != null)
+                skelvis.root.Destroy();
+        }
+
+        if (s < State.IsSetup && _state >= State.IsSetup)
+        {
+            _flycam.GetComponent<FlyCamController>().DeletePlanes();
+            _flycam.GetComponent<FlyCamController>().ResetToNonOrtho();
+            GameObject.Find("Avatar").GetComponent<CharacterMeshRendererController>().alpha = 1f;
+            GameObject.Find("Avatar").GetComponent<TestIS>().ResetBase();
+        }
+        if (s <= State.RotationAdjust)
+        {
+            _HideHands.gameObject.SetActive(false);
+        }
+        _flycam.gameObject.GetComponent<Camera>().orthographic = false;
+        if (s == State.RootSelect)
+        {
+            _flycam.DefaultCamera();
+        }
+    }
+
     private void RevertInfluenceOfScripts(State s)
     {
         if(_state >= State.JointMap && s < State.JointMap)
@@ -812,13 +843,34 @@ public class StepByStepSetup : MonoBehaviour
 
     private void DeleteWorldCanvas()
     {
-        if (_state <= State.PositionAdjust)
+        if (_state <= State.PositionAdjust && _HandSigns.Count > 0)
         {
-            var obj = GameObject.FindObjectsOfType<WorldUI>();
-            foreach (var ob in obj)
+            foreach (var ob in _HandSigns)
             {
-                Destroy(ob.transform.parent.gameObject);
+                Destroy(ob);
             }
+            _HandSigns.Clear();
         }
+    }
+
+    private void DisableOrEnableHandSigns(Text Child)
+    {
+        if (Child.text.Contains("Disable"))
+        {
+            foreach(var obj in _HandSigns)
+            {
+                obj.SetActive(false);
+            }
+            Child.text = Child.text.Replace("Disable", "Enable");
+
+        } else
+        {
+            foreach (var obj in _HandSigns)
+            {
+                obj.SetActive(true);
+            }
+            Child.text = Child.text.Replace("Enable", "Disable");
+        }
+
     }
 }

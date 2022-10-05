@@ -24,6 +24,9 @@ public class gltfImporter : MonoBehaviour
     // Start is called before the first frame update
     void Start()
     {
+        //Change Fullscreen mode by script because even when changing Project Settings its not always in Windowed.
+        Screen.SetResolution(Screen.currentResolution.width, Screen.currentResolution.height, false);
+
         ImportButton = GameObject.Find("gltf import");
         newImportButton = GameObject.Find("gltf new import");
         //ControlAfterImport = GameObject.Find("Control-after-import");
@@ -65,7 +68,6 @@ public class gltfImporter : MonoBehaviour
         // Dialog is closed
         // Print whether a file is chosen (FileBrowser.Success)
         // and the path to the selected file (FileBrowser.Result) (null, if FileBrowser.Success is false)
-        Debug.Log(FileBrowser.Success + " " + FileBrowser.Result);
 
         if (FileBrowser.Success && FileBrowser.Result.Contains(".gltf"))
         {

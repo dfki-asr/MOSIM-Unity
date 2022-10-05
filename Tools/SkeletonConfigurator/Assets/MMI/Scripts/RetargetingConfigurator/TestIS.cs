@@ -63,6 +63,10 @@ namespace MMIUnity
 
         private bool playMOSIMAnimation = false;
 
+        private UnityEngine.UI.Image loadingBar;
+        private string originalAvatarID;
+        private List<double> originalPostureValues;
+
         public bool IsStarted()
         {
             return started;
@@ -95,6 +99,12 @@ namespace MMIUnity
             posture.PostureData = zeroPosture.PostureData;
             this.AssignPostureValues(zeroPosture);
 
+        }
+
+        public void ResetBase()
+        {
+            posture = new MAvatarPostureValues(originalAvatarID, originalPostureValues);
+            this.AssignPostureValues(posture);
         }
 
         public void SaveConfig(string filename, Dictionary<string, Quaternion> base_rotations)
@@ -136,8 +146,9 @@ namespace MMIUnity
             //Debug.Log(JsonConvert.SerializeObject(p, Formatting.Indented));
             System.IO.File.WriteAllText(filename, s);
 
+            /*
             string initialP = Serialization.ToJsonString<MAvatarPosture>(this.initialPosture);
-            System.IO.File.WriteAllText(filename , initialP);
+            System.IO.File.WriteAllText(filename , initialP);*/
         }
 
         public void InitiateSafe()
@@ -175,6 +186,11 @@ namespace MMIUnity
                 this.playMOSIMAnimation = !this.playMOSIMAnimation;
                 this.IS2Avatar = !this.IS2Avatar;
             }
+        }
+
+        public void ResetFrameCount()
+        {
+            this.frame_counter = 0;
         }
 
         public void LoadAndPlayExampleClip()
@@ -250,7 +266,7 @@ namespace MMIUnity
             this.skelVis.AlignAvatar();
         }
         
-        public void ResetBoneMap2(bool destroySkelvis = true)
+        public void ResetBoneMap2(bool destroySkelvis = true, bool OverwriteBase = true)
         {
             this.bonenameMap = this.GetComponent<JointMapper2>().GetJointMap();
             if(!started)
@@ -278,7 +294,11 @@ namespace MMIUnity
                     posture = new MAvatarPostureValues();
                 posture.AvatarID = p.AvatarID;
                 tryID++;
-                ResetBasePosture();
+                if (OverwriteBase)
+                {
+                    ResetBase();
+                } else 
+                    ResetBasePosture();
             }
         }
 
@@ -404,6 +424,10 @@ namespace MMIUnity
             {
                 this.skelVis.root.reference = this.transform;
             }
+
+            var or = this.skelVis.GetZeroPosture();
+            originalAvatarID = or.AvatarID;
+            originalPostureValues = new List<double>(or.PostureData);
             start = false;
             started = true;
 
@@ -417,6 +441,14 @@ namespace MMIUnity
             }
             else if (started)
             {
+                var obj = GameObject.Find("FrameCounterVis");
+                if (obj != null)
+                    loadingBar = obj.GetComponent<UnityEngine.UI.Image>();
+                if (loadingBar != null)
+                {
+                    if (frames.Count > 0)
+                        loadingBar.fillAmount = .1f + (((float)frame_counter )/ (float)frames.Count) * 1/1.25f ;
+                }
 
                 if (posture == null)
                 {

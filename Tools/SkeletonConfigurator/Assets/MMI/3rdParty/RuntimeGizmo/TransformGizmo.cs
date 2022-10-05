@@ -160,6 +160,10 @@ namespace RuntimeGizmos
 			}else{
 				SetNearAxis();
 			}
+
+			//Niklas: Add functionality to ClearTargetselection
+			if (Input.GetKeyDown(KeyCode.C))
+				ClearTargets();
 			
 			GetTarget();
 
