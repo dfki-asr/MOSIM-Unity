@@ -309,7 +309,7 @@ public class JointMapper2 : MonoBehaviour
         var dropdown = ItemUI.GetComponentInChildren<JointNameDropDown>();
         string name = dropdown.options[dropdown.value].text;
 
-        if (this.jointMap.ContainsKey(type) && this.jointMap[type].t.name == null)
+        if (this.jointMap.ContainsKey(type) && /* this.jointMap[type].t.name == null*/ name.ToLower() == "null")
         {
             this.jointMap.Remove(type);
         }
