@@ -50,6 +50,8 @@ public class PathPlanningService : MonoBehaviour, MPathPlanningService.Iface
     /// </summary>
     private MIPAddress registerAddress = new MIPAddress();
 
+    private MIPAddress addressInt = null;
+
 
     /// <summary>
     /// The utilized nav mesh agent
@@ -170,7 +172,7 @@ public class PathPlanningService : MonoBehaviour, MPathPlanningService.Iface
         this.activeEnvironment = defaultEnvironment;
 
         //Create a new service controller
-        this.controller = new ServiceController(description, registerAddress, new MPathPlanningService.Processor(this));
+        this.controller = new ServiceController(description, registerAddress, new MPathPlanningService.Processor(this), internalAddress:addressInt);
         //Start asynchronously
         this.controller.StartAsync();
     }
@@ -549,6 +551,22 @@ public class PathPlanningService : MonoBehaviour, MPathPlanningService.Iface
                       Debug.Log("Address: " + v);
                   }
                 },
+
+                { "aint|addressInternal=", "The address of the hostet tcp server.",
+                  v =>
+                  {
+                      //Split the address to get the ip and port
+                      string[] addr  = v.Split(':');
+
+                      if(addr.Length == 2)
+                      {
+                          addressInt = new MIPAddress();
+                          addressInt.Address = addr[0];
+                          addressInt.Port = int.Parse(addr[1]);
+                      }
+                  }
+                },
+
 
                 { "r|raddress=", "The address of the register which holds the central information.",
                   v =>
