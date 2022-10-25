@@ -22,7 +22,7 @@ public class BlendedIdle : UnityMMUBase
         this.Name = "BlendedIdle";
 
         //Assign the motion type of the MMU
-        this.MotionType = "Pose/BlendedIdle";
+        this.MotionType = "Pose/Idle";
         this.transform.position = Vector3.zero;
         this.transform.rotation = Quaternion.identity;
         this.RootTransform = this.transform;
@@ -116,7 +116,7 @@ public class BlendedIdle : UnityMMUBase
             this.counter += 1;
             float weight = this.counter > this.window_size ? 1.0f : (1.0f / (float)this.window_size) * this.counter;
 
-            MAvatarPostureValues BlendedPosture = Blending.PerformBlend(this.GetSkeleton(), state.Current, RetargetedPosture, weight, null);
+            MAvatarPostureValues BlendedPosture = Blending.PerformBlend((IntermediateSkeleton)this.GetSkeletonAccess(), state.Current, RetargetedPosture, weight, null);
             result.Posture = BlendedPosture;
 
             //result.Posture = this.GetRetargetedPosture();
