@@ -116,7 +116,7 @@
       }
     },
     "de.dfki.mmiunity-core": {
-      "version": "file:C:/Users/nibr02-admin/Desktop/MOSIM/Repos/Packages/MMIUnity-Core",
+      "version": "file:../../../../Packages/MMIUnity-Core",
       "depth": 0,
       "source": "local",
       "dependencies": {}

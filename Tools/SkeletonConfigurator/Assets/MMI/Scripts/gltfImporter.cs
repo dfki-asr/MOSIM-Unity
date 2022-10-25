@@ -21,6 +21,9 @@ public class gltfImporter : MonoBehaviour
     
     private StepByStepSetup setupscript;
 
+    private ApplyBVH bvhReader;
+
+
     // Start is called before the first frame update
     void Start()
     {
@@ -61,6 +64,7 @@ public class gltfImporter : MonoBehaviour
                 Destroy(ob.transform.parent.gameObject);
             }
         }
+        FileBrowser.SetFilters(true, new FileBrowser.Filter[]{ new FileBrowser.Filter("bvh", ".bvh"), new FileBrowser.Filter("gltf",".gltf")});
         // Show a load file dialog and wait for a response from user
         // Load file/folder: file, Initial path: default (Documents), Title: "Load File", submit button text: "Load"
         yield return FileBrowser.WaitForLoadDialog(false, null, "Load File", "Load");
@@ -92,6 +96,21 @@ public class gltfImporter : MonoBehaviour
             {
                 Debug.Log("Loading GLTF Failed! Make sure, that a gltf file is being selected and try again.");
             }
+        } else if(FileBrowser.Success && FileBrowser.Result.Contains(".bvh"))
+        {
+            // BVH loading
+            var path = FileBrowser.Result;
+            bvhReader = this.gameObject.GetComponent<ApplyBVH>();
+            //bvhReader = this.gameObject.AddComponent<ApplyBVH>();
+            //bvhReader.baseObject = gltfLoader;
+            GameObject root = bvhReader.Init(path);
+            root.transform.parent = gltfLoader.transform;
+
+            ChooseRot.SetActive(true);
+            setupscript.SetUpDropdowns(root.transform);
+            ImportButton.SetActive(false);
+            newImportButton.SetActive(true);
+
         }
     }
 

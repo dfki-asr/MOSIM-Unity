@@ -441,8 +441,8 @@ public class StepByStepSetup : MonoBehaviour
         _ConfirmScale.onClick.RemoveAllListeners();
         _ResetScale.onClick.RemoveAllListeners();
 
-        _BigScaleUp.onClick.AddListener(delegate { _root.localScale += new Vector3(.05f, .05f, .05f); });
-        _BigScaleDown.onClick.AddListener(delegate { _root.localScale -= new Vector3(.05f, .05f, .05f); });
+        _BigScaleUp.onClick.AddListener(delegate { _root.localScale += new Vector3(1, 1, 1); });
+        _BigScaleDown.onClick.AddListener(delegate { _root.localScale -= new Vector3(0.5f, .5f, .5f); });
         _ConfirmScale.onClick.AddListener(delegate { ConfirmScale(); });
         _ResetScale.onClick.AddListener(delegate { _root.localScale = _oldScale; });
 
