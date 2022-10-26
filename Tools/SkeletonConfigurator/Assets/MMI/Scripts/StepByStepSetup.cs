@@ -42,6 +42,8 @@ public class StepByStepSetup : MonoBehaviour
     private Vector3 _oldFlyCamPos;
     private Quaternion _oldFlyCamRot;
     private string _filepath;
+    private bool _changedPelvOrRoot = false;
+    private List<GameObject> _boneMeshes;
     #endregion
 
     #region SetupSelect
@@ -59,6 +61,8 @@ public class StepByStepSetup : MonoBehaviour
     private Button _ResetRot;
     private int _direction;
     private Quaternion _oldRot;
+    private string _rotationTooltiptext;
+    private Text _rotationTooltip;
     #endregion
 
     #region SetupPos
@@ -69,6 +73,8 @@ public class StepByStepSetup : MonoBehaviour
     private Button _BigMoveDown;
     private Button _ConfirmPos;
     private Button _ResetPos;
+    private string _positionTooltiptext;
+    private Text _positionTooltip;
 
     private Vector2 _posDir;
     private Vector3 _oldPos;
@@ -84,6 +90,9 @@ public class StepByStepSetup : MonoBehaviour
     private Button _ResetScale;
     private int _scale;
     private Vector3 _oldScale;
+    private string _scaleTooltiptext;
+    private Text _scaleTooltip;
+    private float _calculatedHeight;
     #endregion
 
     #region MosFile
@@ -118,7 +127,9 @@ public class StepByStepSetup : MonoBehaviour
 
         _ChooseRot = GameObject.Find("Choose Root + Pelvis");
         _dic.Add(State.RootSelect, _ChooseRot);
+
         _ChooseRot.SetActive(false);
+
         
         _flycam = GameObject.FindObjectOfType<FlyCam>();
         _transGiz = _flycam.gameObject.GetComponent<TransformGizmo>();
@@ -129,15 +140,21 @@ public class StepByStepSetup : MonoBehaviour
         
         _ChangeRot = GameObject.Find("Orient Avatar");
         _dic.Add(State.RotationAdjust, _ChangeRot);
+        _rotationTooltip = GameObject.Find("RotationTooltip").GetComponent<Text>();
+        _rotationTooltiptext = _rotationTooltip.text;
         _ChangeRot.SetActive(false);
 
         _ChangePos = GameObject.Find("Position Avatar");
         _dic.Add(State.PositionAdjust, _ChangePos);
+        _positionTooltip = GameObject.Find("PositionTooltip").GetComponent<Text>();
+        _positionTooltiptext = _positionTooltip.text;
         _ChangePos.SetActive(false);
         _planes = new List<GameObject>();
 
         _ChangeScale = GameObject.Find("Scale Avatar");
         _dic.Add(State.ScaleAdjust, _ChangeScale);
+        _scaleTooltip = GameObject.Find("ScaleTooltip").GetComponent<Text>();
+        _scaleTooltiptext = _scaleTooltip.text;
         _ChangeScale.SetActive(false);
 
         _MosimSelector = GameObject.Find("Configuration-File");
@@ -159,6 +176,7 @@ public class StepByStepSetup : MonoBehaviour
         _SetuppedConfigurator = GameObject.Find("Control-after-import");
         _dic.Add(State.IsSetup, _SetuppedConfigurator);
         _SetuppedConfigurator.SetActive(false);
+        _boneMeshes = new List<GameObject>();
 
     }
 
@@ -229,18 +247,57 @@ public class StepByStepSetup : MonoBehaviour
         }
     }
 
+    IEnumerator CalculateHeight()
+    {
+        yield return new WaitForEndOfFrame();
+        var min = float.MaxValue;
+        var max = float.MinValue;
+        foreach (Transform t in _bonelist)
+        {
+            if(t.GetComponent<SkinnedMeshRenderer>() != null)
+            {
+                if (t.GetComponent<SkinnedMeshRenderer>().bounds.min.y < min)
+                    min = t.GetComponent<SkinnedMeshRenderer>().bounds.min.y;
+                if (t.GetComponent<SkinnedMeshRenderer>().bounds.max.y > max)
+                    max = t.GetComponent<SkinnedMeshRenderer>().bounds.max.y;
+            }
+        }
+        this._calculatedHeight = max - min;
+        UpdateScaleText();
+
+    }
+
+    private void UpdateScaleText()
+    {
+        _scaleTooltip.text = _scaleTooltiptext + $"\n\ncalculated height: {this._calculatedHeight} \ncurrent root scale: {this._root.localScale.ToString()}";
+    }
+
+    private void UpdateMoveText()
+    {
+        _positionTooltip.text = _positionTooltiptext + $"\n\ncurrent root position: {this._root.position.ToString()}";
+    }
+
+    private void UpdateRotationText()
+    {
+        _rotationTooltip.text = _rotationTooltiptext + $"\n\ncurrent root rotation: {this._root.rotation.eulerAngles.ToString()}";
+    }
+
     private void ScaleRoot()
     {
-        _root.localScale += new Vector3(_scale, _scale, _scale)* 0.1f * Time.deltaTime;
+        _root.localScale += new Vector3(_scale, _scale, _scale)* 0.05f * Time.deltaTime;
+        StartCoroutine(CalculateHeight());
     }
 
     private void MoveRoot()
     {
         _root.position += new Vector3(_posDir.x, _posDir.y, 0) * 0.1f * Time.deltaTime;
+        UpdateMoveText();
     }
     public void ConfirmSelection(List<Transform>Tlist)
     {
         //Get the transforms for pelvis and root
+        if (_root != Tlist[_rootDrop.value] || _pelvis != Tlist[_pelvDrop.value])
+            _changedPelvOrRoot = true;
         _root = Tlist[_rootDrop.value];
         _pelvis = Tlist[_pelvDrop.value];
 
@@ -351,6 +408,7 @@ public class StepByStepSetup : MonoBehaviour
     public void ChooseConfigFileLoc()
     {
         _MosimSelector.SetActive(true);
+        _state = State.SelectPath;
         _SetuppedConfigurator.SetActive(false);
 
         _transGiz.enabled = false;
@@ -368,10 +426,11 @@ public class StepByStepSetup : MonoBehaviour
         _ConfirmRotation.onClick.RemoveAllListeners();
         _ResetRot.onClick.RemoveAllListeners();
 
-        _BigTurnLeft.onClick.AddListener(delegate { RotateY(90f); });
-        _BigTurnRight.onClick.AddListener(delegate { RotateY(-90f); });
-        _ConfirmRotation.onClick.AddListener(delegate { ConfirmRotation(); });
-        _ResetRot.onClick.AddListener(delegate { _root.rotation = _oldRot; });
+        _BigTurnLeft.onClick.AddListener(delegate { RotateY(90f); UpdateRotationText(); });
+        _BigTurnRight.onClick.AddListener(delegate { RotateY(-90f); UpdateRotationText(); });
+        _ConfirmRotation.onClick.AddListener(delegate { ConfirmRotation(); UpdateRotationText(); });
+        _ResetRot.onClick.AddListener(delegate { _root.rotation = _oldRot; UpdateRotationText(); });
+        UpdateRotationText();
     }
 
     private void SetUpPositioner()
@@ -396,12 +455,12 @@ public class StepByStepSetup : MonoBehaviour
         _ConfirmPos.onClick.RemoveAllListeners();
         _ResetPos.onClick.RemoveAllListeners();
 
-        _BigMoveLeft.onClick.AddListener(delegate { _root.position += new Vector3(.1f, 0, 0); });
-        _BigMoveRight.onClick.AddListener(delegate { _root.position += new Vector3(-.1f, 0, 0); });
-        _BigMoveDown.onClick.AddListener(delegate { _root.position += new Vector3(0, -.1f, 0); });
-        _BigMoveUp.onClick.AddListener(delegate { _root.position += new Vector3(0, .1f, 0); });
+        _BigMoveLeft.onClick.AddListener(delegate { _root.position += new Vector3(.1f, 0, 0); UpdateMoveText(); });
+        _BigMoveRight.onClick.AddListener(delegate { _root.position += new Vector3(-.1f, 0, 0); UpdateMoveText(); });
+        _BigMoveDown.onClick.AddListener(delegate { _root.position += new Vector3(0, -.1f, 0); UpdateMoveText(); });
+        _BigMoveUp.onClick.AddListener(delegate { _root.position += new Vector3(0, .1f, 0); UpdateMoveText(); });
         _ConfirmPos.onClick.AddListener(delegate { ConfirmPos(); });
-        _ResetPos.onClick.AddListener(delegate { _root.position = _oldPos; });
+        _ResetPos.onClick.AddListener(delegate { _root.position = _oldPos; UpdateMoveText(); });
 
         // Add Planes and change to projection
         var plane1 = Instantiate(Resources.Load("Plane") as GameObject, Vector3.zero, Quaternion.Euler(90,0,0));
@@ -422,6 +481,7 @@ public class StepByStepSetup : MonoBehaviour
             _flycam.transform.GetChild(0).GetComponent<Camera>().orthographicSize = 1.5f;
         _flycam.gameObject.GetComponent<FlyCamController>().enabled = true;
 
+        UpdateMoveText();
     }
 
     private void SetupScaler()
@@ -441,12 +501,17 @@ public class StepByStepSetup : MonoBehaviour
         _ConfirmScale.onClick.RemoveAllListeners();
         _ResetScale.onClick.RemoveAllListeners();
 
-        _BigScaleUp.onClick.AddListener(delegate { _root.localScale += new Vector3(1, 1, 1); });
-        _BigScaleDown.onClick.AddListener(delegate { _root.localScale -= new Vector3(0.5f, .5f, .5f); });
-        _ConfirmScale.onClick.AddListener(delegate { ConfirmScale(); });
-        _ResetScale.onClick.AddListener(delegate { _root.localScale = _oldScale; });
+        _BigScaleUp.onClick.AddListener(delegate { _root.localScale += new Vector3(.1f, .1f, .1f);
+            StartCoroutine(CalculateHeight());
+        });
+        _BigScaleDown.onClick.AddListener(delegate { _root.localScale -= new Vector3(0.1f, .1f, .1f);
+            StartCoroutine(CalculateHeight());
+        });
 
-        var plane1 = Instantiate(Resources.Load("Plane") as GameObject, _root.position, Quaternion.Euler(90, 0, 0));
+        _ConfirmScale.onClick.AddListener(delegate { ConfirmScale(); });
+        _ResetScale.onClick.AddListener(delegate { _root.localScale = _oldScale; CalculateHeight(); });
+
+        var plane1 = Instantiate(Resources.Load("Plane") as GameObject, Vector3.zero, Quaternion.Euler(90, 0, 0));
         _planes.Add(plane1);
 
         var zerorotation = Quaternion.Euler(Vector3.zero);
@@ -456,6 +521,8 @@ public class StepByStepSetup : MonoBehaviour
         if(_flycam.transform.childCount > 0)
             _flycam.transform.GetChild(0).GetComponent<Camera>().orthographicSize = 1.5f;
         _flycam.gameObject.GetComponent<FlyCamController>().enabled = true;
+
+        StartCoroutine(CalculateHeight());
 
     }
 
@@ -480,8 +547,15 @@ public class StepByStepSetup : MonoBehaviour
     private Transform FindHand(Transform origin, int depth = 0,bool left = true)
     {
         Transform result = null;
-        if (depth >=5 && origin.childCount == 5)
+        var bonecount = 0;
+        for (int i = 0; i < origin.childCount; i++)
         {
+            if (origin.GetChild(i).gameObject.activeInHierarchy)
+                bonecount++;
+        }
+        if (depth >=5 && bonecount == 5)
+        {
+
             //Assumes the Character is rotated to front the Camera
             if (left) { 
                 if( origin.transform.position.x < 0)
@@ -509,6 +583,7 @@ public class StepByStepSetup : MonoBehaviour
     public void RotateY(float degree)
     {
         _root.Rotate(new Vector3(0, degree, 0), Space.World);
+        UpdateRotationText();
     }
 
 
@@ -554,38 +629,90 @@ public class StepByStepSetup : MonoBehaviour
     {
         GameObject AvatarParent = GameObject.Find("Avatar");
         // Add the necessary Script components
-        var bony = AvatarParent.AddComponent<BoneVisualization>();
-        var testy = AvatarParent.AddComponent<TestIS>();
-        var controlly = AvatarParent.AddComponent<CharacterMeshRendererController>();
-        var mappy = AvatarParent.AddComponent<JointMapper2>();
-        var setupy = AvatarParent.AddComponent<AutoSetupInterface>();
+        if (!HasScripts(AvatarParent))
+        {
+            var bony = AvatarParent.AddComponent<BoneVisualization>();
+            var testy = AvatarParent.AddComponent<TestIS>();
+            var controlly = AvatarParent.AddComponent<CharacterMeshRendererController>();
+            var mappy = AvatarParent.AddComponent<JointMapper2>();
+            var setupy = AvatarParent.AddComponent<AutoSetupInterface>();
 
-        // Setup BoneVis
-        bony.Root = _root.parent;
-        bony.bonePrefab = BonePrefab;
-        bony.endPrefab = EndPrefab;
+            // Setup BoneVis
+            bony.Root = _root.parent;
+            bony.bonePrefab = BonePrefab;
+            bony.endPrefab = EndPrefab;
 
-        //Setup TestIS
-        testy.RootTransform = _root.parent;
-        testy.Pelvis = _pelvis;
-        testy.gameJointPrefab = GameJointPrefab;
-        testy.UseSkeletonVisualization = true;
-        //TODO: GIVE CONFIG FILEPATH!
-        testy.ConfigurationFilePath = filepath;
+            //Setup TestIS
+            testy.RootTransform = _root.parent;
+            testy.Pelvis = _pelvis;
+            testy.gameJointPrefab = GameJointPrefab;
+            testy.UseSkeletonVisualization = true;
 
-        //Setup Mapper
-        mappy.Root = _root;
+            testy.ConfigurationFilePath = filepath;
 
-        //Setup AutoSetuper
-        setupy.root = _root;
+            //Setup Mapper
+            mappy.Root = _root;
+
+            //Setup AutoSetuper
+            setupy.root = _root;
+
+            // Do we want to let the jointmap be? 
+            _changedPelvOrRoot = false;
+            _boneMeshes.Clear();
+        } else
+        {
+            if (_changedPelvOrRoot)
+            {
+                var bony = AvatarParent.GetComponent<BoneVisualization>();
+                var testy = AvatarParent.GetComponent<TestIS>();
+                var controlly = AvatarParent.GetComponent<CharacterMeshRendererController>();
+                var mappy = AvatarParent.GetComponent<JointMapper2>();
+                var setupy = AvatarParent.GetComponent<AutoSetupInterface>();
+
+                // Setup BoneVis
+                bony.Root = _root.parent;
+                bony.bonePrefab = BonePrefab;
+                bony.endPrefab = EndPrefab;
+
+                //Setup TestIS
+                testy.RootTransform = _root.parent;
+                testy.Pelvis = _pelvis;
+                testy.gameJointPrefab = GameJointPrefab;
+                testy.UseSkeletonVisualization = true;
+                //TODO: GIVE CONFIG FILEPATH!
+                testy.ConfigurationFilePath = filepath;
+
+                //Setup Mapper
+                mappy.Root = _root;
+
+                //Setup AutoSetuper
+                setupy.root = _root;
+            }
+            foreach(GameObject g in _boneMeshes)
+            {
+                g.SetActive(true);
+            }
+            _boneMeshes.Clear();
+        }
 
 
+    }
+
+    private bool HasScripts(GameObject g)
+    {
+        return
+            (g.GetComponent<BoneVisualization>() != null) &&
+            (g.GetComponent<TestIS>() != null) &&
+            (g.GetComponent<CharacterMeshRendererController>() != null) &&
+            (g.GetComponent<JointMapper2>() != null) &&
+            (g.GetComponent<AutoSetupInterface>() != null);
     }
     
 
     public void ResetToStart()
     {
         SafeStepBack(State.RootSelect);
+        DestroyInfluenceOfScripts(State.RootSelect);
         _state = State.RootSelect;       
     }
 
@@ -711,7 +838,7 @@ public class StepByStepSetup : MonoBehaviour
 
     private void SafeStepBack(State s)
     {
-        if (_state <= State.RotationAdjust +1)
+        if (_state >= State.RotationAdjust +1 && s < State.JointMap)
         {
             _flycam.gameObject.GetComponent<FlyCamController>().ClearPlanes();
             _flycam.gameObject.GetComponent<FlyCamController>().ResetToNonOrtho();
@@ -755,21 +882,19 @@ public class StepByStepSetup : MonoBehaviour
 
 
         _ConfirmMapping.interactable = false;
-
-        if (s <= State.JointMap && _state >= State.JointMap)
-        {
-            var avatar = GameObject.Find("Avatar");
-            var skelvis = avatar.GetComponent<TestIS>().skelVis;
-            if (skelvis != null)
-                skelvis.root.Destroy();
-        }
-
         if (s < State.IsSetup && _state >= State.IsSetup)
         {
             _flycam.GetComponent<FlyCamController>().DeletePlanes();
             _flycam.GetComponent<FlyCamController>().ResetToNonOrtho();
             GameObject.Find("Avatar").GetComponent<CharacterMeshRendererController>().alpha = 1f;
             GameObject.Find("Avatar").GetComponent<TestIS>().ResetBase();
+        }
+        if (s <= State.JointMap && _state >= State.JointMap)
+        {
+            var avatar = GameObject.Find("Avatar");
+            var skelvis = avatar.GetComponent<TestIS>().skelVis;
+            if (skelvis != null)
+                skelvis.root.Destroy();
         }
         if (s <= State.RotationAdjust)
         {
@@ -784,7 +909,29 @@ public class StepByStepSetup : MonoBehaviour
 
     private void RevertInfluenceOfScripts(State s)
     {
-        if(_state >= State.JointMap && s < State.JointMap)
+        if (_state >= State.JointMap && s < State.JointMap)
+        {
+            //Hide all BoneVisualisation meshes
+            var avatar = GameObject.Find("Avatar");
+            ShredAvatar(avatar.transform, true);
+
+            _transGiz.enabled = false;
+            GameObject.Find("Avatar").GetComponent<TestIS>().ResetStarted();
+        }
+        if(_state == State.IsSetup && s != State.IsSetup)
+        {
+            var test = GameObject.Find("Avatar").GetComponent<TestIS>();
+            if(test != null)
+            {
+                if (test.IsPlayingAnim())
+                    test.PlayPauseExampleClip();
+            }
+        }
+    }
+
+    private void DestroyInfluenceOfScripts(State s)
+    {
+        if ( s < State.JointMap)
         {
             //Destroy all scripts which were attached to the GameObject.
             var avatar = GameObject.Find("Avatar");
@@ -815,14 +962,30 @@ public class StepByStepSetup : MonoBehaviour
     /// Recursive function to go over all transforms of the Avatar and look for childs which are not included in the bonelist and will be deleted.
     /// </summary>
     /// <param name="toshred">The bones of the skeleton (including avatar, root,..)</param>
-    private void ShredAvatar(Transform toshred)
+    private void ShredAvatar(Transform toshred, bool hide = false)
     {
-        for(int i = 0; i<toshred.childCount; i++)
+        if (hide)
         {
-            if (!_bonelist.Contains(toshred.GetChild(i)))
-                Destroy(toshred.GetChild(i).gameObject);
-            else
-                ShredAvatar(toshred.GetChild(i));
+            for (int i = 0; i < toshred.childCount; i++)
+            {
+                if (!_bonelist.Contains(toshred.GetChild(i)))
+                {
+                    this._boneMeshes.Add(toshred.GetChild(i).gameObject);
+                    toshred.GetChild(i).gameObject.SetActive(false);
+                }
+                else
+                    ShredAvatar(toshred.GetChild(i), hide);
+            }
+        }
+        else
+        {
+            for (int i = 0; i < toshred.childCount; i++)
+            {
+                if (!_bonelist.Contains(toshred.GetChild(i)))
+                    Destroy(toshred.GetChild(i).gameObject);
+                else
+                    ShredAvatar(toshred.GetChild(i), hide);
+            }
         }
     }
 
@@ -843,7 +1006,7 @@ public class StepByStepSetup : MonoBehaviour
 
     private void DeleteWorldCanvas()
     {
-        if (_state <= State.PositionAdjust && _HandSigns.Count > 0)
+        if (_state >= State.PositionAdjust && _HandSigns.Count > 0)
         {
             foreach (var ob in _HandSigns)
             {

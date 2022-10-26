@@ -121,12 +121,12 @@ namespace MMIUnity
             {
                 this.skelVis.root.Destroy();
             }
-
-            this.SetupRetargeting(name, p);
             if (this.skelVis.root.reference == null)
             {
                 this.skelVis.root.reference = this.transform;
             }
+            this.SetupRetargeting(name, p);
+
             
             if (posture == null)
                 posture = new MAvatarPostureValues();
@@ -217,9 +217,18 @@ namespace MMIUnity
             }
         }
 
+        public bool IsPlayingAnim()
+        {
+            return this.playMOSIMAnimation;
+        }
+
         public void ResetFrameCount()
         {
             this.frame_counter = 0;
+        }
+        public void ResetStarted()
+        {
+            this.started = false;
         }
 
         public void LoadAndPlayExampleClip()
@@ -301,6 +310,8 @@ namespace MMIUnity
             if(!started)
             {
                 ManagedStart();
+                this.initialPosture = GenerateGlobalPosture();
+
             } else
             {
                 this.AvatarID = name;
@@ -406,13 +417,6 @@ namespace MMIUnity
             MAvatarPosture ret = base.SetupRetargeting(id, reference);
             this.skelVis.alignment = new JointAlignment();
             return ret;
-        }
-
-        override
-        protected void Start()
-        {
-            this.initialPosture = GenerateGlobalPosture();
-            //this.UseVirtualRoot = false;
         }
 
         protected void ManagedStart()
