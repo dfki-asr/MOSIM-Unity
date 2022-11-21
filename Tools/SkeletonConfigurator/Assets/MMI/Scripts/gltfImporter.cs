@@ -22,6 +22,8 @@ public class gltfImporter : MonoBehaviour
     private StepByStepSetup setupscript;
 
     private ApplyBVH bvhReader;
+    private string bvhpath = "";
+    private GameObject zeroFramePopup;
 
 
     // Start is called before the first frame update
@@ -47,6 +49,9 @@ public class gltfImporter : MonoBehaviour
         {
             gltfLoader = new GameObject("Avatar");
         }
+
+        zeroFramePopup = GameObject.Find("Zeroframe");
+        zeroFramePopup.SetActive(false);
 
     }
 
@@ -99,19 +104,28 @@ public class gltfImporter : MonoBehaviour
         } else if(FileBrowser.Success && FileBrowser.Result.Contains(".bvh"))
         {
             // BVH loading
-            var path = FileBrowser.Result;
+            this.bvhpath = FileBrowser.Result;
             bvhReader = this.gameObject.GetComponent<ApplyBVH>();
             //bvhReader = this.gameObject.AddComponent<ApplyBVH>();
             //bvhReader.baseObject = gltfLoader;
-            GameObject root = bvhReader.Init(path);
-            root.transform.parent = gltfLoader.transform;
 
-            ChooseRot.SetActive(true);
-            setupscript.SetUpDropdowns(root.transform);
+            //Ask if the BVH got a T-pose at first frame. 
+            zeroFramePopup.SetActive(true);
             ImportButton.SetActive(false);
-            newImportButton.SetActive(true);
 
         }
+    }
+
+    public void LoadBVH(bool b)
+    {
+        GameObject root = bvhReader.Init(this.bvhpath, b);
+        root.transform.parent = gltfLoader.transform;
+
+        ChooseRot.SetActive(true);
+        setupscript.SetUpDropdowns(root.transform);
+
+        zeroFramePopup.SetActive(false);
+        newImportButton.SetActive(true);
     }
 
     /// <summary>
