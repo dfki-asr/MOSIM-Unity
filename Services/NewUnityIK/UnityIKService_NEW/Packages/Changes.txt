@@ -1,0 +1,1 @@
+    manifest.json deleted row -> "de.dfki.mmiunity-core": "file:../../Core", ->     "de.dfki.mmiunity-core": "file:E:/code/NewMOSIM/MOSIM/Repos/Packages/MMIUnity-Core",
