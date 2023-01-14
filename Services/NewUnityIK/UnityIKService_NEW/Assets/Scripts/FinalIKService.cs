@@ -1,0 +1,229 @@
+using MMICSharp.Services;
+using MMIUnity;
+using System;
+using System.Collections;
+using System.Collections.Generic;
+using UnityEngine;
+using UnityIKService;
+
+public class FinalIKService : MonoBehaviour, MInverseKinematicsService.Iface
+{
+    // Prefab object configured for IK based upon the Intermediate Skeleton hierarchy. 
+    public GameObject IK_Avatar_Prefab;
+    // List of avatar instances. 
+    private Dictionary<string, FinalIK_MAvatar> avatars = new Dictionary<string, FinalIK_MAvatar>();
+    // used for server build
+    public static bool IsServerBuild = false;
+
+    /// <summary>
+    ///  Address for this service
+    /// </summary>
+    public MIPAddress address = new MIPAddress();
+    /// <summary>
+    /// Address for the registry. 
+    /// </summary>
+    public MIPAddress registerAddress = new MIPAddress();
+
+    /// <summary>
+    /// Service Controller managing the MOSIM Service communication. 
+    /// </summary>
+    private ServiceController controller;
+
+
+    /// <summary>
+    /// The Setup method will be called before any other method is called. In this method, the 
+    /// IK Avatar is spawned and scaled. 
+    /// The parameters are defined by the interface and cannot be changed. 
+    /// </summary>
+    /// <param name="avatar"></param>
+    /// <param name="properties"></param>
+    /// <returns></returns>
+    public MBoolResponse Setup(MAvatarDescription avatar, Dictionary<string, string> properties)
+    {
+        Debug.Log("Setup");
+        this.ExecuteOnMainThread(() =>
+        {
+            // Instantiate 
+            var go = GameObject.Instantiate(IK_Avatar_Prefab, this.transform);
+            var component = go.GetComponent<FinalIK_MAvatar>();
+            
+            // scale avatar
+            component.ScaleAvatar(avatar);
+
+            // replace in container list if already existing
+            if (avatars.ContainsKey(avatar.AvatarID))
+            {
+                GameObject.Destroy(avatars[avatar.AvatarID].gameObject);
+                avatars.Remove(avatar.AvatarID);
+            }
+            // otherwise add
+            avatars.Add(avatar.AvatarID, component);
+        });
+        return new MBoolResponse(true);
+    }
+
+
+    /// <summary>
+    /// Perform the IK Pass
+    /// </summary>
+    /// <param name="postureValues"></param>
+    /// <param name="constraints"></param>
+    /// <param name="properties"></param>
+    /// <returns></returns>
+    public MIKServiceResult CalculateIKPosture(MAvatarPostureValues postureValues, List<MConstraint> constraints, Dictionary<string, string> properties)
+    {
+        if(!this.avatars.ContainsKey(postureValues.AvatarID))
+        {
+            Debug.LogError("Avatar not available, call setup before calculating postures!");
+            return new MIKServiceResult(postureValues, false, new List<double> ());
+        }
+        MAvatarPostureValues resultP = postureValues;
+        bool reached = false;
+        this.ExecuteOnMainThread(() =>
+        {
+            this.avatars[postureValues.AvatarID].ApplyPosture(postureValues);
+
+            // compute IK
+            // TODO: Copy and implement here
+
+             resultP = this.avatars[postureValues.AvatarID].GetPostureValues();
+        });
+        MIKServiceResult result = new MIKServiceResult(resultP, reached, new List<double>());
+        return result;
+    }
+
+    public MAvatarPostureValues ComputeIK(MAvatarPostureValues postureValues, List<MIKProperty> properties)
+    {
+        // This method will be deprecated
+        throw new System.NotImplementedException();
+    }
+
+    public Dictionary<string, string> Consume(Dictionary<string, string> properties)
+    {
+        throw new System.NotImplementedException();
+    }
+
+    public MBoolResponse Dispose(Dictionary<string, string> properties)
+    {
+        throw new System.NotImplementedException();
+    }
+
+    /// <summary>
+    /// The service description
+    /// </summary>
+    private MServiceDescription description = new MServiceDescription()
+    {
+        ID = "FinalIkServiceV001",
+        Language = "UnityC#",
+        Name = "ikService",
+
+        //Directly define the parameters
+        Parameters = new List<MParameter>()
+            {
+                new MParameter("test", "", "Test", true),
+            }
+    };
+
+    public MServiceDescription GetDescription()
+    {
+        return this.description;
+    }
+
+    public Dictionary<string, string> GetStatus()
+    {
+        return new Dictionary<string, string>()
+            {
+                { "Running", "true"}
+            };
+    }
+
+    public MBoolResponse Restart(Dictionary<string, string> properties)
+    {
+        throw new System.NotImplementedException();
+    }
+
+
+
+    private void Start()
+    {
+        //Check if we are within a server build
+        IsServerBuild = SystemInfo.graphicsDeviceType == UnityEngine.Rendering.GraphicsDeviceType.Null;
+
+        //Create a new instance of the logger
+        MMICSharp.Logger.Instance = new UnityLogger();
+        MMICSharp.Logger.Instance.Level = MMICSharp.Log_level.L_INFO;
+
+
+        //Check if this is a server build which has no visualization and a console instead
+        if (IsServerBuild)
+        {
+            System.Console.WriteLine(@"   __  __      _ __           ______ __    _____                 _         ");
+            System.Console.WriteLine(@"  / / / /___  (_) /___  __   /  _/ //_/   / ___/___  ______   __(_)_______ ");
+            System.Console.WriteLine(@" / / / / __ \/ / __/ / / /   / // ,<      \__ \/ _ \/ ___/ | / / / ___/ _ \");
+            System.Console.WriteLine(@"/ /_/ / / / / / /_/ /_/ /  _/ // /| |    ___/ /  __/ /   | |/ / / /__/  __/");
+            System.Console.WriteLine(@"\____/_/ /_/_/\__/\__, /  /___/_/ |_|   /____/\___/_/    |___/_/\___/\___/ ");
+            System.Console.WriteLine(@"                 /____/                                                    ");
+        }
+
+        else
+        {
+            MMICSharp.Logger.Log(MMICSharp.Log_level.L_INFO, "Starting IK server");
+        }
+
+        //Application.targetFrameRate = 20;
+        //QualitySettings.SetQualityLevel(0, true);
+
+
+        //Add the main thread dispatcher add the beginning if not already available 
+        if (GameObject.FindObjectOfType<MainThreadDispatcher>() == null)
+            this.gameObject.AddComponent<MainThreadDispatcher>();
+
+
+        //Only use this if self_hosted and within edit mode -> Otherwise the launcher which starts the service assigns the address and port
+#if UNITY_EDITOR
+        this.address.Address = "127.0.0.1";
+        this.address.Port = 8951;
+
+        this.registerAddress.Port = 9009;
+        this.registerAddress.Address = "127.0.0.1";
+#else
+        //Parse the command line arguments
+        if (!this.ParseCommandLineArguments(System.Environment.GetCommandLineArgs()))
+        {
+            MMICSharp.Logger.Log(MMICSharp.Log_level.L_ERROR, "Cannot parse the command line arguments. Closing the service!");
+            return;
+        }
+#endif
+
+
+        //Add the present address 
+        this.description.Addresses = new List<MIPAddress>()
+            {
+                this.address
+            };
+
+
+        //Create a new service controller
+        this.controller = new ServiceController(description, registerAddress, new MInverseKinematicsService.Processor(this));
+
+        this.controller.Start();
+
+        //Start asynchronously
+        //this.controller.StartAsync();
+    }
+    /// <summary>
+    /// Any method changing the scene graph needs to run on the main thread. 
+    /// </summary>
+    /// <param name="function"></param>
+    private void ExecuteOnMainThread(Action function)
+    {
+        if (MainThreadDispatcher.Instance == null)
+        {
+            UnityEngine.Debug.Log("Cannot execute on main thread, Main thread dispatcher not available");
+        }
+
+        //Execute using MainThreadDispatcher
+        MainThreadDispatcher.Instance.ExecuteBlocking(function);
+    }
+
+}
