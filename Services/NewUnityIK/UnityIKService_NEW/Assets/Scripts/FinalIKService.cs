@@ -1,8 +1,11 @@
 using MMICSharp.Services;
+using MMIStandard;
 using MMIUnity;
+using RootMotion.FinalIK;
 using System;
 using System.Collections;
 using System.Collections.Generic;
+using System.Linq;
 using UnityEngine;
 using UnityIKService;
 
@@ -58,6 +61,7 @@ public class FinalIKService : MonoBehaviour, MInverseKinematicsService.Iface
             }
             // otherwise add
             avatars.Add(avatar.AvatarID, component);
+            avatars[avatar.AvatarID].SetupBaseTargets();
         });
         return new MBoolResponse(true);
     }
@@ -78,17 +82,74 @@ public class FinalIKService : MonoBehaviour, MInverseKinematicsService.Iface
             return new MIKServiceResult(postureValues, false, new List<double> ());
         }
         MAvatarPostureValues resultP = postureValues;
-        bool reached = false;
+        FinalIK_MAvatar currentAvatar = avatars[postureValues.AvatarID];
+
+
+        MIKServiceResult result = new MIKServiceResult();
+
+        //bool reached = false;
         this.ExecuteOnMainThread(() =>
         {
-            this.avatars[postureValues.AvatarID].ApplyPosture(postureValues);
+            currentAvatar.ApplyPosture(postureValues);
 
-            // compute IK
-            // TODO: Copy and implement here
+            List<MJointConstraint> jointConstraints = constraints.Where(s => s.JointConstraint != null).Select(s => s.JointConstraint).ToList();
 
-             resultP = this.avatars[postureValues.AvatarID].GetPostureValues();
+            //Convert the joint constraint to ik properties
+
+            foreach (MJointConstraint jointConstraint in jointConstraints)
+            {
+                if (jointConstraint.GeometryConstraint != null)
+                {
+                    MVector3 jointPosition = null;
+                    MQuaternion jointRotation = null;
+
+                    //Check if an explicit transform is defined
+                    if (jointConstraint.GeometryConstraint.ParentToConstraint != null)
+                    {
+                        jointPosition = jointConstraint.GeometryConstraint.ParentToConstraint.Position;
+                        jointRotation = jointConstraint.GeometryConstraint.ParentToConstraint.Rotation;
+                    }
+
+                    else
+                    {
+                        if (jointConstraint.GeometryConstraint.TranslationConstraint != null)
+                        {
+                            jointPosition = jointConstraint.GeometryConstraint.TranslationConstraint.GetVector3();
+                        }
+
+                        if (jointConstraint.GeometryConstraint.RotationConstraint != null)
+                        {
+                            jointRotation = jointConstraint.GeometryConstraint.RotationConstraint.GetQuaternion();
+                        }
+                    }
+
+
+                    Debug.Log("Position:" + jointPosition);
+
+                    // if the jointPosition and rotation exist -> use the FinalIK
+                    if (jointPosition != null && jointRotation != null)
+                    {
+                        currentAvatar.finalBPIK.ResetIK();
+                        //this.avatars[postureValues.AvatarID].ApplyPosture(postureValues);
+                        currentAvatar.finalBPIK.enabled = true;
+
+                        // Apply the Final IK (Full Body Biped IK)
+                        UnityIKService.Extensions.ApplyFBBIK(currentAvatar.jointTypeToGameObject, currentAvatar.finalBPIK, jointPosition, jointRotation, jointConstraint.JointType);
+
+                        result.Posture = currentAvatar.GetPostureValues();
+                        result.Posture.AvatarID = postureValues.AvatarID;
+                        result.Error = new List<double>();
+
+                        // Turn off fbbik for performance reasons
+                        currentAvatar.finalBPIK.enabled = false;
+                    }
+                }
+            }
+
+            resultP = currentAvatar.GetPostureValues();
         });
-        MIKServiceResult result = new MIKServiceResult(resultP, reached, new List<double>());
+        //MIKServiceResult result = new MIKServiceResult(resultP, reached, new List<double>());
+        result.Success = true;
         return result;
     }
 

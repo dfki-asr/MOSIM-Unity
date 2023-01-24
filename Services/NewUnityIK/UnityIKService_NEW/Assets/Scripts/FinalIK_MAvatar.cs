@@ -4,6 +4,7 @@ using UnityEngine;
 using MMIStandard;
 using MMIUnity;
 using MMICSharp.Common;
+using RootMotion.FinalIK;
 
 public class FinalIK_MAvatar : MonoBehaviour
 {
@@ -12,6 +13,11 @@ public class FinalIK_MAvatar : MonoBehaviour
     public Transform Root;
     private IntermediateSkeleton intermediate_skel = new IntermediateSkeleton();
 
+    // FinalIK Scripts/Objects
+    public FullBodyBipedIK finalBPIK;
+    public LookAtIK lookAtIK;
+    public List<GameObject> ikTargets;
+    public Dictionary<MJointType, GameObject> jointTypeToGameObject { get; set; }
     // Start is called before the first frame update
     void Start()
     {
@@ -33,6 +39,11 @@ public class FinalIK_MAvatar : MonoBehaviour
         reference = description.ZeroPosture;
         intermediate_skel.InitializeAnthropometry(description);
         this._scale(Root); 
+    }
+
+    public void SetupBaseTargets()
+    {
+        this.jointTypeToGameObject = UnityIKService.Extensions.MJointTypeToGameObject(ikTargets);
     }
 
     /// <summary>

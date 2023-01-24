@@ -96,9 +96,9 @@ namespace UnityIKService
         /// </summary>
         /// <param name="gameObjects">List of GameObjects</param>
         /// <returns></returns>
-        public static Dictionary<MJointType,GameObject> MJointTypeToGameObject(List<GameObject> gameObjects)
+        public static Dictionary<MJointType, GameObject> MJointTypeToGameObject(List<GameObject> gameObjects)
         {
-            Dictionary<MJointType, GameObject> jointTypeToObjectDict = new Dictionary<MJointType, GameObject>();
+            Dictionary<MJointType, GameObject> jointTypeToObjectDict = new Dictionary< MJointType, GameObject>();
 
             foreach(GameObject obj in gameObjects)
             {
@@ -155,6 +155,38 @@ namespace UnityIKService
 
                 ikEffector = finalBPIK.solver.GetEffector(fbbikEffector);
                 ikEffector.target = ikTarget.transform;
+                ikEffector.positionWeight = 1f;
+                ikEffector.rotationWeight = 1f;
+
+                finalBPIK.solver.Update();
+            }
+        }
+
+        /// <summary>
+        /// New FinalIKApply method
+        /// </summary>
+        /// <param name="finalBPIK"></param>
+        /// <param name="localTarget"></param>
+        /// <param name="newTargetPosition"></param>
+        /// <param name="newTargetRotation"></param>
+        /// <param name="jointType"></param>
+        public static void ApplyFinalIKToJointTargets(FullBodyBipedIK finalBPIK, GameObject localTarget, MVector3 newTargetPosition, MQuaternion newTargetRotation, MJointType jointType)
+        {
+            IKEffector ikEffector;
+            FullBodyBipedEffector fbbikEffector = jointType.ToIKEffectorType();
+            if (fbbikEffector != FullBodyBipedEffector.Body)
+            {
+                //instead of using UnityIK we will use the finalBPIK effector directly
+                localTarget.transform.position = newTargetPosition.MVector3ToVector3();
+                localTarget.transform.rotation = newTargetRotation.MQuaternionToQuaternion();
+
+                ///TODO Gaze
+                // set the lookAt target to the ikTarget
+                //if (lookAtIK.enabled) lookAtIK.solver.target = ikTarget.transform;
+
+                ikEffector = finalBPIK.solver.GetEffector(fbbikEffector);
+                // FinalIK target is set to the position the localTarget, which was set to the position of the target in the target scene
+                ikEffector.target = localTarget.transform;
                 ikEffector.positionWeight = 1f;
                 ikEffector.rotationWeight = 1f;
 
