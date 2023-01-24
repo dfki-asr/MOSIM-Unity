@@ -82,6 +82,8 @@ public class FinalIK_MAvatar : MonoBehaviour
         MJoint j = GetMJoint(t);
         if(j != null)
         {
+            Debug.Log(t.childCount);
+
             if (j.Type == MJointType.PelvisCentre)
             {
                 Vector3 offset = j.Position.ToVector3();
