@@ -100,7 +100,7 @@
       "depth": 0,
       "source": "git",
       "dependencies": {},
-      "hash": "399e1e9b5dd713d7fcf66ada22daff824ff3d8f4"
+      "hash": "eea49f6b589cd6f523012bef76f783ad3ad2f093"
     },
     "nuget.mono-cecil": {
       "version": "0.1.6-preview",
