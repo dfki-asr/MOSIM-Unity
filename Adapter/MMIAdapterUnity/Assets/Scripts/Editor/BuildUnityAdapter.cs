@@ -9,4 +9,12 @@ public class BuildUnityAdapter{
         string[] scenes = new string[] {"Assets/main.unity"};
         BuildPipeline.BuildPlayer(scenes,"./build/UnityAdapter.exe", BuildTarget.StandaloneWindows, BuildOptions.EnableHeadlessMode);
     }
+    
+    public static void CreateServerBuildLinux ()
+    {
+        Debug.Log("Building Path Planning Service Server Build"); 
+        string[] scenes = new string[] {"Assets/main.unity"};
+        BuildPipeline.BuildPlayer(scenes,"./build/UnityAdapter", BuildTarget.StandaloneLinux64, BuildOptions.EnableHeadlessMode);
+    }
+
 }
