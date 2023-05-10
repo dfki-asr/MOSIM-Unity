@@ -181,7 +181,7 @@ namespace UnityLocomotionMMU
         /// <param name="properties"></param>
         /// <returns></returns>
         public override MBoolResponse Initialize(MAvatarDescription avatarDescription, Dictionary<string, string> properties)
-        {         
+        {
             //Assign the vatar description
             this.AvatarDescription = avatarDescription;
 
@@ -334,7 +334,7 @@ namespace UnityLocomotionMMU
                     }
                     catch (Exception e)
                     {
-                        MMICSharp.Logger.Log(MMICSharp.Log_level.L_ERROR,"UnityLocomotionMMU: Cannot parse trajectory -> plan new one: " + e.Message + " " + e.StackTrace);
+                        MMICSharp.Logger.Log(MMICSharp.Log_level.L_ERROR, "UnityLocomotionMMU: Cannot parse trajectory -> plan new one: " + e.Message + " " + e.StackTrace);
                     }
                 }
 
@@ -346,10 +346,10 @@ namespace UnityLocomotionMMU
                 }
 
 
-                
 
 
-                if (this.trajectory == null ||this.trajectory.Poses.Count ==0)
+
+                if (this.trajectory == null || this.trajectory.Poses.Count == 0)
                 {
                     this.abort = true;
 
@@ -361,13 +361,13 @@ namespace UnityLocomotionMMU
                         "No path found"
                     };
 
-                    response.Successful = false;            
+                    response.Successful = false;
                 }
 
 
                 //Valid path found
                 if (this.trajectory != null && this.trajectory.Poses.Count > 0)
-                { 
+                {
                     //Create the visualization data for the trajectory (drawing calls)
                     this.CreateTrajectoryVisualization();
 
@@ -618,7 +618,7 @@ namespace UnityLocomotionMMU
                 this.discretePoses = this.trajectory.SampleFrames(60);
 
                 //Reset index and first frame flag
-                this.currentIndex = 0;           
+                this.currentIndex = 0;
                 this.firstFrame = true;
 
                 //Create a visualization of the trajectory (drawing calls)
@@ -833,7 +833,8 @@ namespace UnityLocomotionMMU
                         if (result.PolygonPoints[0].ParentToConstraint != null)
                         {
                             computedPath = result.PolygonPoints.Select(s => new MTransform() { Position = new MVector3(s.ParentToConstraint.Position.X, 0, s.ParentToConstraint.Position.Z) }).ToList();
-                        } else
+                        }
+                        else
                         {
                             // TODO: Legacy support. Remove in a future version
                             computedPath = result.PolygonPoints.Select(s => new MTransform() { Position = new MVector3(s.TranslationConstraint.X(), 0, s.TranslationConstraint.Z()) }).ToList();
@@ -845,7 +846,7 @@ namespace UnityLocomotionMMU
                 }
                 catch (Exception e)
                 {
-                    MMICSharp.Logger.Log( MMICSharp.Log_level.L_ERROR,"Problem at computing path using service " + e.Message + " " + e.StackTrace);
+                    MMICSharp.Logger.Log(MMICSharp.Log_level.L_ERROR, "Problem at computing path using service " + e.Message + " " + e.StackTrace);
 
                     //In case of an exception return the straight line 
                     //To do use an optional flag to adjust the desired behavior, e.g. should an error be returned instead
@@ -922,7 +923,7 @@ namespace UnityLocomotionMMU
 
         }
 
- 
+
         /// <summary>
         /// Estimates the next waypoint of a given path.
         /// Returns the first point which is farer away than the specified distance
@@ -1064,11 +1065,11 @@ namespace UnityLocomotionMMU
             if (instruction.Properties.ContainsKey("TargetID"))
             {
                 //First check if this is a gemoetry constraint
-                if(instruction.Constraints !=null && instruction.Constraints.Exists(s=>s.ID == instruction.Properties["TargetID"]))
-                {                   
+                if (instruction.Constraints != null && instruction.Constraints.Exists(s => s.ID == instruction.Properties["TargetID"]))
+                {
                     MConstraint match = instruction.Constraints.Find(s => s.ID == instruction.Properties["TargetID"]);
                     return match.GeometryConstraint.ParentToConstraint;
-                    
+
                 }
 
                 else

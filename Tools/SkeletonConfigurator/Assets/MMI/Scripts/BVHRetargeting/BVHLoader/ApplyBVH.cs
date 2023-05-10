@@ -392,7 +392,8 @@ public class ApplyBVH : MonoBehaviour
                 string s = "";
                 while((s = sr.ReadLine()) != null)
                 {
-                    lines.Add(s);
+                    if(s != "")
+                        lines.Add(s);
                 }
                 Debug.Log("Read lines " +  (lines.Count).ToString());
             }
@@ -413,7 +414,7 @@ public class ApplyBVH : MonoBehaviour
             //this.root.ParseMotionFrame(Regex.Split(lines[counter], @"\s+"), 0);
             //this.ApplyToTransform(this.root.jointObj.transform);
 
-            motionFrame = counter + 1;
+            motionFrame = counter;
             this.lines = lines;
             ComputeBaseRotations(this.root.jointObj.transform);
             isInit = true;

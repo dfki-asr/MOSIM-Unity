@@ -303,7 +303,7 @@ MonoBehaviour:
   RootTransform: {fileID: 653738859}
   Pelvis: {fileID: 1850494910}
   UseVirtualRoot: 1
-  UseSkeletonVisualization: 0
+  UseSkeletonVisualization: 1
   gameJointPrefab: {fileID: 2009522951350749947, guid: 237bb6ef194cd894e9dc4f20506ec8e8,
     type: 3}
   animatorReference: {fileID: 0}

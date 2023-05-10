@@ -22,7 +22,7 @@ public class BlendedIdle : UnityMMUBase
         this.Name = "BlendedIdle";
 
         //Assign the motion type of the MMU
-        this.MotionType = "Pose/Idle";
+        this.MotionType = "Pose/BlendedIdle";
         this.transform.position = Vector3.zero;
         this.transform.rotation = Quaternion.identity;
         this.RootTransform = this.transform;
