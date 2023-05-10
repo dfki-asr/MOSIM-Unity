@@ -4,5 +4,8 @@
 EditorBuildSettings:
   m_ObjectHideFlags: 0
   serializedVersion: 2
-  m_Scenes: []
+  m_Scenes:
+  - enabled: 1
+    path: Assets/Scenes/BerlinDemo/BerlinDemo.unity
+    guid: 8447875a20d76c04fb6a3d1dc78e656c
   m_configObjects: {}
