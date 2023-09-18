@@ -67,8 +67,9 @@
     "de.dfki.mmiunity-core": {
       "version": "file:../../../../Packages/MMIUnity-Core",
       "depth": 0,
-      "source": "local",
-      "dependencies": {}
+      "source": "git",
+      "dependencies": {},
+      "hash": "eea49f6b589cd6f523012bef76f783ad3ad2f093"
     },
     "com.unity.modules.ai": {
       "version": "1.0.0",
