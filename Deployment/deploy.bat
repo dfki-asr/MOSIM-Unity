@@ -91,9 +91,13 @@ REM Method Section
 			) else (
 				if "%2"=="MMUs" (
 					call :DeployMMUs 
-				) else ( 
-					if "%2"=="PathPlanning" ( 
+				) else (
+					if "%2"=="PathPlanning" (
 						call :DeployPathPlanning
+					) else (
+						if "%2"=="IK" (
+							call :DeployIKService
+						)
 					)
 				)
 			)
@@ -136,11 +140,21 @@ exit /b 0
 	call :DeployMethod %REPO%\Services\UnityPathPlanning Services\UnityPathPlanning UnityPathPlanningService\build
 exit /b 0
 
+::DeployIKService
+:DeployIKService
+	if "%FINAL_IK%"=="1" (
+		call :DeployMethod %REPO%\Services\UnityIKService Services\UnityIKService build
+	) else (
+		ECHO IK Service not deployed, because Final IK is missing. 
+	)
+exit /b 0
+
 ::DeployAll
 :DeployAll
 	call :DeployAdapter
 	call :DeployMMUs
 	call :DeployPathPlanning
+	call :DeployIKService 
 	REM TODO: Add Deployment of Tools and MMUs 
 exit /b 0
 
