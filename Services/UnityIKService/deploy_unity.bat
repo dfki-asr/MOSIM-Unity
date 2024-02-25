@@ -29,7 +29,13 @@ IF EXIST build (
 
 REM Build Unity Project:
 ECHO Building the  Unity IK Service project. This step may take some while, so please wait...
-call "%MOSIM_UNITY%" -quit -batchmode -logFile build.log -projectPath "." -executeMethod BuildIKService.CreateServerBuild 
+if "%MOSIM_DEPLOY_LINUX%"=="1" (
+	ECHO ... Deploying for Linux
+	call "%MOSIM_UNITY%" -quit -batchmode -logFile build.log -projectPath "." -executeMethod BuildIKService.CreateServerBuildLinux
+) else (
+	ECHO ... Deploying for Windows
+	call "%MOSIM_UNITY%" -quit -batchmode -logFile build.log -projectPath "." -executeMethod BuildIKService.CreateServerBuild 
+)
 
 if %ERRORLEVEL% EQU 0 (
   IF EXIST build\configurations (

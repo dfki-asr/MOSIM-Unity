@@ -31,6 +31,7 @@ namespace UnityIKService
 
         private MAvatarPosture initialPosture;
         private MIPAddress address = new MIPAddress();
+        private MIPAddress addressInt = null;
         private MIPAddress registerAddress = new MIPAddress();
 
         private ISVisualizationJoint scaledSkeleton = null;
@@ -209,7 +210,7 @@ namespace UnityIKService
 
 
             //Create a new service controller
-            this.controller = new ServiceController(description, registerAddress, new MInverseKinematicsService.Processor(this));
+            this.controller = new ServiceController(description, registerAddress, new MInverseKinematicsService.Processor(this), addressInt);
 
             this.controller.Start();
 
@@ -562,6 +563,21 @@ namespace UnityIKService
                           this.address.Port = int.Parse(addr[1]);
                       }
                       MMICSharp.Logger.LogDebug("Address: " + v);
+                  }
+                },
+
+                 { "aint|addressInternal=", "The address of the hostet tcp server.",
+                  v =>
+                  {
+                      //Split the address to get the ip and port
+                      string[] addr  = v.Split(':');
+
+                      if(addr.Length == 2)
+                      {
+                          addressInt = new MIPAddress();
+                          addressInt.Address = addr[0];
+                          addressInt.Port = int.Parse(addr[1]);
+                      }
                   }
                 },
 
