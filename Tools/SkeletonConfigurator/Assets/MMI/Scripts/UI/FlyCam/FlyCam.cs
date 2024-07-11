@@ -42,12 +42,18 @@ public class FlyCam : MonoBehaviour
     void Update()
     {
         transform.rotation = Quaternion.Euler(rotation);
-        transform.position = target.position - distance * transform.forward + translation;
+        if(target != null)
+            transform.position = target.position - distance * transform.forward + translation;
     }
 
     public void ClearTranslation()
     {
         translation = Vector3.zero;
+    }
+
+    public void DefaultCamera()
+    {
+        LookAtTargetFrom(Vector3.forward, Vector3.up, 5);
     }
 
     /// <summary>Look at target from a point</summary>

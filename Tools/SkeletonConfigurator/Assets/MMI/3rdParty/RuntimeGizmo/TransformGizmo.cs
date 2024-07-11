@@ -160,6 +160,10 @@ namespace RuntimeGizmos
 			}else{
 				SetNearAxis();
 			}
+
+			//Niklas: Add functionality to ClearTargetselection
+			if (Input.GetKeyDown(KeyCode.C))
+				ClearTargets();
 			
 			GetTarget();
 
@@ -527,9 +531,9 @@ namespace RuntimeGizmos
 				RaycastHit hitInfo; 
 				if(Physics.Raycast(myCamera.ScreenPointToRay(Input.mousePosition), out hitInfo, Mathf.Infinity, selectionMask))
 				{
-					// Transform target = hitInfo.transform;
-
-					Transform target = hitInfo.transform.parent.parent;
+					Transform target = hitInfo.transform;
+					if(hitInfo.transform.parent && hitInfo.transform.parent.parent != null)
+						target = hitInfo.transform.parent.parent;
 
 					if(isAdding)
 					{

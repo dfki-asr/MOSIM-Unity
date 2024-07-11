@@ -124,7 +124,7 @@ public class Joint
         string s1 = itemList[1];
         string s2 = itemList[2];
         string s3 = itemList[3];
-        return new Vector3(float.Parse(s1), float.Parse(s2), float.Parse(s3));
+        return new Vector3(float.Parse(s1, System.Globalization.CultureInfo.InvariantCulture), float.Parse(s2, System.Globalization.CultureInfo.InvariantCulture), float.Parse(s3, System.Globalization.CultureInfo.InvariantCulture));
     }
 
     /// <summary>
@@ -260,9 +260,9 @@ public class Joint
             trans = trans2;
         }
 
-        float rot1 = float.Parse(frame[counter]);
-        float rot2 = float.Parse(frame[counter + 1]);
-        float rot3 = float.Parse(frame[counter + 2]);
+        float rot1 = float.Parse(frame[counter], System.Globalization.CultureInfo.InvariantCulture);
+        float rot2 = float.Parse(frame[counter + 1], System.Globalization.CultureInfo.InvariantCulture);
+        float rot3 = float.Parse(frame[counter + 2], System.Globalization.CultureInfo.InvariantCulture);
 
 
         counter += 3;
@@ -373,7 +373,7 @@ public class ApplyBVH : MonoBehaviour
     {
         get {return isInit;}
     }
-    public GameObject Init(string path)
+    public GameObject Init(string path, bool zeroframe = true)
     {
         this.file = path;
         Debug.Log("Files: " + file);
@@ -422,7 +422,9 @@ public class ApplyBVH : MonoBehaviour
         string[] zeroFrame = this.root.ZeroFrame().ToArray();
         motionsStart = motionFrame;
         this.root.ParseMotionFrame(Regex.Split(this.lines[motionFrame], @"\s+"), 0);//.Split(' ')
-        //this.root.ParseMotionFrame(zeroFrame, 0);//.Split(' ')
+        if (!zeroframe)
+            this.root.ParseMotionFrame(zeroFrame, 0);//.Split(' ')
+
         // Apply motion to transform hierarchy.
         this.ApplyToTransform(this.root.jointObj.transform);
         return this.root.jointObj;
